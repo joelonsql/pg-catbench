@@ -1,0 +1,9 @@
+.DS_Store
+regression.diffs
+regression.out
+results
+catbench--*.sql
+catbench.o
+catbench.so
+catbench.dylib
+.vscode

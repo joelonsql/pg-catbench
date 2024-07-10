@@ -1,0 +1,6 @@
+comment = 'benchmarking tool for catalog functions'
+default_version = '0.1'
+module_pathname = '$libdir/catbench'
+relocatable = false
+schema = catbench
+superuser = false
