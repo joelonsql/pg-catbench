@@ -29,6 +29,10 @@ cargo build --release
 ./target/release/pg-catbench numeric
 ```
 
+## Data Model
+
+![data-model](./docs/data-model.svg)
+
 ## License
 
 `pg-catbench` is licensed under the PostgreSQL License.

@@ -13,7 +13,7 @@ include $(PGXS)
 
 REGRESS_OPTS = --inputdir=tests --outputdir=tests
 
-all: catbench--0.1.sql
+all: catbench--0.1.sql docs/data-model.svg
 
 SQL_SRC = \
 	complain_header.sql \
@@ -38,3 +38,6 @@ SQL_SRC = \
 
 catbench--0.1.sql: $(SQL_SRC)
 	cat $^ > $@
+
+docs/data-model.svg: docs/data-model.dot
+	dot -Tsvg docs/data-model.dot -o docs/data-model.svg

@@ -1,0 +1,20 @@
+digraph pg_catbench {
+    node [shape=record];
+
+    benchmarks [label="{benchmarks|id : bigint (PK)\lname : text (U)\l}"];
+    file_mappings [label="{file_mappings|id : bigint (PK)\lbenchmark_id : bigint (FK)\lfile_path : text\l}"];
+    functions [label="{functions|id : bigint (PK)\lname : text (U)\lbenchmark_id : bigint (FK)\lx_label : text\ly_label : text\l}"];
+    hosts [label="{hosts|id : uuid (PK)\lcpu_info : jsonb\los_info : jsonb\lcreated_at : timestamptz\l}"];
+    results [label="{results|id : uuid (PK)\lexecution_time : numeric\lrun_id : uuid (FK)\ltest_id : bigint (FK)\lresult_at : timestamptz\l}"];
+    runs [label="{runs|id : uuid (PK)\lbenchmark_id : bigint (FK)\lhost_id : uuid (FK)\lcreated_at : timestamptz\lfinished_at : timestamptz\l}"];
+    tests [label="{tests|id : bigint (PK)\lfunction_id : bigint (FK)\lx : numeric\ly : numeric\linput_values : text[]\l}"];
+
+    // Relationships
+    file_mappings -> benchmarks [label="benchmark_id"];
+    functions -> benchmarks [label="benchmark_id"];
+    results -> runs [label="run_id"];
+    results -> tests [label="test_id"];
+    runs -> benchmarks [label="benchmark_id"];
+    runs -> hosts [label="host_id"];
+    tests -> functions [label="function_id"];
+}
