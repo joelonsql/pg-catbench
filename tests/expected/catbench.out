@@ -1,1 +1,2 @@
-CREATE EXTENSION catbench;
+CREATE EXTENSION catbench CASCADE;
+NOTICE:  installing required extension "timeit"

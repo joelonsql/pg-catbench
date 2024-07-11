@@ -13,7 +13,21 @@ such as Pull Requests, email patches to a specific mailbox, or other means.
 It will depend on [pg-timeit](https://github.com/joelonsql/pg-timeit) for
 the actual measurements of catalog functions.
 
-There is nothing useful here yet; work has just started.
+There is not so much here yet; work has just started.
+
+Currently, benchmarks can be created and run manually.
+
+## Usage
+
+```sh
+git clone https://github.com/joelonsql/pg-catbench.git
+cd pg-catbench
+make clean && make && make install && make installcheck
+psql -c "CREATE EXTENSION timeit"
+psql -c "CREATE EXTENSION catbench"
+cargo build --release
+./target/release/pg-catbench numeric
+```
 
 ## License
 

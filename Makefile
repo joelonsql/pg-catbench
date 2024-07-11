@@ -19,11 +19,21 @@ SQL_SRC = \
 	complain_header.sql \
 	tables/benchmarks.sql \
 	tables/file_mappings.sql \
-	tables/function_mappings.sql \
+	tables/functions.sql \
+	tables/tests.sql \
+	tables/hosts.sql \
+	tables/runs.sql \
+	tables/results.sql \
+	functions/register_host.sql \
 	functions/new_benchmark.sql \
-	functions/get_benchmark.sql \
+	functions/get_benchmark_id.sql \
+	functions/get_benchmark_test_ids.sql \
+	functions/get_function_id.sql \
 	functions/new_file_mapping.sql \
-	functions/new_function_mapping.sql \
+	functions/new_function.sql \
+	functions/new_run.sql \
+	functions/mark_run_as_finished.sql \
+	procedures/run_test.sql \
 	benchmarks/numeric.sql
 
 catbench--0.1.sql: $(SQL_SRC)

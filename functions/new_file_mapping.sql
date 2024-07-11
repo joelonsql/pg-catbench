@@ -1,4 +1,4 @@
-CREATE FUNCTION catbench.new_file_mapping
+CREATE OR REPLACE FUNCTION catbench.new_file_mapping
 (
     name text,
     file_path text
@@ -10,7 +10,7 @@ BEGIN ATOMIC
         (benchmark_id, file_path)
     VALUES
         (
-            catbench.get_benchmark(name),
+            catbench.get_benchmark_id(name),
             file_path
         )
     RETURNING id;

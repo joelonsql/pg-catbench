@@ -1,4 +1,4 @@
-CREATE FUNCTION catbench.new_benchmark(name text)
+CREATE OR REPLACE FUNCTION catbench.new_benchmark(name text)
 RETURNS bigint
 LANGUAGE SQL
 BEGIN ATOMIC

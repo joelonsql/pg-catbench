@@ -4,3 +4,4 @@ module_pathname = '$libdir/catbench'
 relocatable = false
 schema = catbench
 superuser = false
+requires = 'timeit'
