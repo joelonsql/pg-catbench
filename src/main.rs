@@ -4,11 +4,15 @@ use std::env;
 use sysinfo::System;
 use indicatif::ProgressBar;
 use indicatif::ProgressStyle;
-use rand::seq::SliceRandom;
 use uuid::Uuid;
 
 fn run_benchmark(benchmark_name: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = Client::connect("host=localhost", NoTls)?;
+
+    client.execute(
+        "SELECT setseed(0)",
+        &[],
+    )?;
 
     let mut sys = System::new_all();
     sys.refresh_all();
@@ -49,10 +53,7 @@ fn run_benchmark(benchmark_name: &str) -> Result<(), Box<dyn std::error::Error>>
     );
 
     for _ in 0..3 {
-        let mut randomized_test_ids = test_ids.clone();
-        randomized_test_ids.shuffle(&mut rand::thread_rng());
-
-        for test_id in randomized_test_ids {
+        for &test_id in &test_ids {
             client.execute(
                 "CALL catbench.run_test($1, $2)",
                 &[&test_id, &run_id],

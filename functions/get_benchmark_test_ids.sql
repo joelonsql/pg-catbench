@@ -10,5 +10,6 @@ BEGIN ATOMIC
       ON catbench.functions.benchmark_id = catbench.benchmarks.id
     JOIN catbench.tests
       ON catbench.tests.function_id = catbench.functions.id
-    WHERE catbench.benchmarks.name = get_benchmark_test_ids.benchmark_name;
+    WHERE catbench.benchmarks.name = get_benchmark_test_ids.benchmark_name
+    ORDER BY random();
 END;
