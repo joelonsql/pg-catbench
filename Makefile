@@ -24,6 +24,9 @@ SQL_SRC = \
 	tables/hosts.sql \
 	tables/runs.sql \
 	tables/results.sql \
+	tables/commits.sql \
+	tables/files.sql \
+	tables/commit_files.sql \
 	functions/register_host.sql \
 	functions/new_benchmark.sql \
 	functions/get_benchmark_id.sql \
@@ -34,6 +37,7 @@ SQL_SRC = \
 	functions/new_run.sql \
 	functions/mark_run_as_finished.sql \
 	procedures/run_test.sql \
+	procedures/merge_new_commits.sql \
 	benchmarks/numeric.sql
 
 catbench--0.1.sql: $(SQL_SRC)
