@@ -6,7 +6,7 @@ use indicatif::ProgressBar;
 use indicatif::ProgressStyle;
 use uuid::Uuid;
 
-fn run_benchmark(benchmark_name: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn run_benchmark(benchmark_name: &str, commit_hash: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = Client::connect("host=localhost", NoTls)?;
 
     client.execute(
@@ -35,8 +35,8 @@ fn run_benchmark(benchmark_name: &str) -> Result<(), Box<dyn std::error::Error>>
     )?.get(0);
 
     let run_id: Uuid = client.query_one(
-        "SELECT catbench.new_run($1, $2::uuid)",
-        &[&benchmark_name, &host_id],
+        "SELECT catbench.new_run($1, $2::uuid, $3)",
+        &[&benchmark_name, &host_id, &commit_hash],
     )?.get(0);
 
     let test_ids: Vec<i64> = client.query(
@@ -51,6 +51,11 @@ fn run_benchmark(benchmark_name: &str) -> Result<(), Box<dyn std::error::Error>>
             .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")?
             .progress_chars("#>-")
     );
+
+    client.execute(
+        "SELECT catbench.mark_run_as_started($1)",
+        &[&run_id],
+    )?;
 
     for _ in 0..3 {
         for &test_id in &test_ids {
@@ -74,13 +79,14 @@ fn run_benchmark(benchmark_name: &str) -> Result<(), Box<dyn std::error::Error>>
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() != 2 {
-        eprintln!("Usage: {} <benchmark_name>", args[0]);
+    if args.len() != 3 {
+        eprintln!("Usage: {} <benchmark_name> <commit_hash>", args[0]);
         std::process::exit(1);
     }
 
     let benchmark_name = &args[1];
-    if let Err(err) = run_benchmark(benchmark_name) {
+    let commit_hash = &args[2];
+    if let Err(err) = run_benchmark(benchmark_name, commit_hash) {
         eprintln!("Error running benchmark: {}", err);
         std::process::exit(1);
     }

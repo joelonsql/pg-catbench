@@ -18,23 +18,26 @@ all: catbench--0.1.sql docs/data-model.svg
 SQL_SRC = \
 	complain_header.sql \
 	tables/benchmarks.sql \
-	tables/file_mappings.sql \
 	tables/functions.sql \
 	tables/tests.sql \
 	tables/hosts.sql \
-	tables/runs.sql \
-	tables/results.sql \
 	tables/commits.sql \
 	tables/files.sql \
 	tables/commit_files.sql \
+	tables/benchmark_files.sql \
+	tables/runs.sql \
+	tables/results.sql \
 	functions/register_host.sql \
 	functions/new_benchmark.sql \
 	functions/get_benchmark_id.sql \
 	functions/get_benchmark_test_ids.sql \
 	functions/get_function_id.sql \
-	functions/new_file_mapping.sql \
+	functions/get_or_insert_file.sql \
+	functions/new_benchmark_file.sql \
 	functions/new_function.sql \
+	functions/get_commit_id.sql \
 	functions/new_run.sql \
+	functions/mark_run_as_started.sql \
 	functions/mark_run_as_finished.sql \
 	procedures/run_test.sql \
 	procedures/merge_new_commits.sql \

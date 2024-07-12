@@ -1,5 +1,5 @@
 SELECT catbench.new_benchmark('numeric', 'generate_numeric', 'hash_numeric');
-SELECT catbench.new_file_mapping('numeric', 'src/backend/utils/adt/numeric.c');
+SELECT catbench.new_benchmark_file('numeric', 'src/backend/utils/adt/numeric.c');
 SELECT catbench.new_function('numeric', 'numeric_mul', 'var1ndigits', 'var2ndigits');
 
 CREATE OR REPLACE FUNCTION catbench.generate_numeric(ndigits numeric)
