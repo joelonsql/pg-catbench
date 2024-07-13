@@ -20,14 +20,14 @@ SQL_SRC = \
 	tables/benchmarks.sql \
 	tables/functions.sql \
 	tables/tests.sql \
-	tables/hosts.sql \
+	tables/system_configs.sql \
 	tables/commits.sql \
 	tables/files.sql \
 	tables/commit_files.sql \
 	tables/benchmark_files.sql \
 	tables/runs.sql \
 	tables/results.sql \
-	functions/register_host.sql \
+	functions/register_system_config.sql \
 	functions/new_benchmark.sql \
 	functions/get_benchmark_id.sql \
 	functions/get_benchmark_test_ids.sql \

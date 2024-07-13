@@ -1,4 +1,4 @@
-CREATE TABLE catbench.hosts
+CREATE TABLE catbench.system_configs
 (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     cpu_info jsonb NOT NULL,

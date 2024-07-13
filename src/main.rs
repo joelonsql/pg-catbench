@@ -29,14 +29,14 @@ fn run_benchmark(benchmark_name: &str, commit_hash: &str) -> Result<(), Box<dyn 
         "os_version": System::os_version().unwrap_or_else(|| "<unknown>".to_owned())
     });
 
-    let host_id: Uuid = client.query_one(
-        "SELECT catbench.register_host($1::jsonb, $2::jsonb)",
+    let system_config_id: Uuid = client.query_one(
+        "SELECT catbench.register_system_config($1::jsonb, $2::jsonb)",
         &[&cpu_info, &os_info],
     )?.get(0);
 
     let run_id: Uuid = client.query_one(
         "SELECT catbench.new_run($1, $2::uuid, $3)",
-        &[&benchmark_name, &host_id, &commit_hash],
+        &[&benchmark_name, &system_config_id, &commit_hash],
     )?.get(0);
 
     let test_ids: Vec<i64> = client.query(
