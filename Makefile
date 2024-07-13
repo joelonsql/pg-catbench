@@ -36,11 +36,13 @@ SQL_SRC = \
 	functions/new_benchmark_file.sql \
 	functions/new_function.sql \
 	functions/get_commit_id.sql \
-	functions/new_run.sql \
-	functions/mark_run_as_started.sql \
 	functions/mark_run_as_finished.sql \
+	functions/get_next_benchmark_run.sql \
+	functions/generate_test.sql \
+	functions/insert_result.sql \
 	procedures/run_test.sql \
 	procedures/merge_new_commits.sql \
+	views/vresults.sql \
 	benchmarks/numeric.sql
 
 catbench--0.1.sql: $(SQL_SRC)

@@ -27,7 +27,7 @@ psql -c "CREATE EXTENSION timeit"
 psql -c "CREATE EXTENSION catbench"
 cargo build --release
 ./target/release/pg-git-commit-tracker
-./target/release/pg-catbench numeric $(git -C postgresql_repo rev-parse HEAD)
+./target/release/pg-catbench
 ```
 
 ## Data Model

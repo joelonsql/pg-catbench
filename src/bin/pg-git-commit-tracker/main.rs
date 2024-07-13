@@ -8,7 +8,7 @@ use std::io::Write;
 fn main() -> Result<(), Box<dyn Error>> {
     let repo_url = "https://git.postgresql.org/git/postgresql.git";
     let repo_path = "postgresql_repo";
-    let since_tag = "REL_12_0";
+    let since_tag = "REL_13_0";
     let until_tag = "HEAD";
     let hash_regex = Regex::new(r"^[0-9a-f]{40}$").unwrap();
 
@@ -21,6 +21,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             .status()
             .expect("Failed to clone repository");
     } else {
+        Command::new("git")
+            .args(&["checkout", "master"])
+            .current_dir(repo_path)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .expect("Failed to pull latest changes");
+
         Command::new("git")
             .args(&["pull"])
             .current_dir(repo_path)
