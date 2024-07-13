@@ -12,7 +12,7 @@ BEGIN ATOMIC
     VALUES
         (
             catbench.get_benchmark_id(benchmark_name),
-            catbench.get_or_insert_file_path(file_path)
+            catbench.get_or_insert_file(file_path)
         )
     RETURNING id;
 END;
