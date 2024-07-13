@@ -12,11 +12,13 @@
 <!-- benchmarks -->
 <g id="node1" class="node">
 <title>benchmarks</title>
-<polygon fill="none" stroke="black" points="175.38,-17 175.38,-82.5 275.38,-82.5 275.38,-17 175.38,-17"/>
-<text text-anchor="middle" x="225.38" y="-65.2" font-family="Times,serif" font-size="14.00">benchmarks</text>
-<polyline fill="none" stroke="black" points="175.38,-58 275.38,-58"/>
-<text text-anchor="start" x="183.38" y="-40.7" font-family="Times,serif" font-size="14.00">id : bigint (PK)</text>
-<text text-anchor="start" x="183.38" y="-24.2" font-family="Times,serif" font-size="14.00">name : text (U)</text>
+<polygon fill="none" stroke="black" points="152.88,-0.5 152.88,-99 297.88,-99 297.88,-0.5 152.88,-0.5"/>
+<text text-anchor="middle" x="225.38" y="-81.7" font-family="Times,serif" font-size="14.00">benchmarks</text>
+<polyline fill="none" stroke="black" points="152.88,-74.5 297.88,-74.5"/>
+<text text-anchor="start" x="160.88" y="-57.2" font-family="Times,serif" font-size="14.00">id : bigint (PK)</text>
+<text text-anchor="start" x="160.88" y="-40.7" font-family="Times,serif" font-size="14.00">name : text (U)</text>
+<text text-anchor="start" x="160.88" y="-24.2" font-family="Times,serif" font-size="14.00">generate_function : text</text>
+<text text-anchor="start" x="160.88" y="-7.7" font-family="Times,serif" font-size="14.00">hash_function : text</text>
 </g>
 <!-- benchmark_files -->
 <g id="node2" class="node">
@@ -31,25 +33,25 @@
 <!-- benchmark_files&#45;&gt;benchmarks -->
 <g id="edge1" class="edge">
 <title>benchmark_files&#45;&gt;benchmarks</title>
-<path fill="none" stroke="black" d="M245.53,-185.34C237.89,-169.81 230.32,-151.56 226.38,-134 223.51,-121.26 222.54,-107.14 222.49,-94.21"/>
-<polygon fill="black" stroke="black" points="225.99,-94.3 222.65,-84.25 218.99,-94.19 225.99,-94.3"/>
+<path fill="none" stroke="black" d="M245.53,-185.34C237.89,-169.81 230.32,-151.56 226.38,-134 224.67,-126.43 223.64,-118.37 223.07,-110.36"/>
+<polygon fill="black" stroke="black" points="226.58,-110.47 222.63,-100.64 219.59,-110.79 226.58,-110.47"/>
 <text text-anchor="middle" x="265.38" y="-120.7" font-family="Times,serif" font-size="14.00">benchmark_id</text>
 </g>
 <!-- files -->
 <g id="node9" class="node">
 <title>files</title>
-<polygon fill="none" stroke="black" points="309.38,-17 309.38,-82.5 427.38,-82.5 427.38,-17 309.38,-17"/>
-<text text-anchor="middle" x="368.38" y="-65.2" font-family="Times,serif" font-size="14.00">files</text>
-<polyline fill="none" stroke="black" points="309.38,-58 427.38,-58"/>
-<text text-anchor="start" x="317.38" y="-40.7" font-family="Times,serif" font-size="14.00">id : bigint (PK)</text>
-<text text-anchor="start" x="317.38" y="-24.2" font-family="Times,serif" font-size="14.00">file_path : text (U)</text>
+<polygon fill="none" stroke="black" points="321.38,-17 321.38,-82.5 439.38,-82.5 439.38,-17 321.38,-17"/>
+<text text-anchor="middle" x="380.38" y="-65.2" font-family="Times,serif" font-size="14.00">files</text>
+<polyline fill="none" stroke="black" points="321.38,-58 439.38,-58"/>
+<text text-anchor="start" x="329.38" y="-40.7" font-family="Times,serif" font-size="14.00">id : bigint (PK)</text>
+<text text-anchor="start" x="329.38" y="-24.2" font-family="Times,serif" font-size="14.00">file_path : text (U)</text>
 </g>
 <!-- benchmark_files&#45;&gt;files -->
 <g id="edge2" class="edge">
 <title>benchmark_files&#45;&gt;files</title>
-<path fill="none" stroke="black" d="M291.32,-185.41C307.19,-157.68 328.26,-120.85 344.36,-92.72"/>
-<polygon fill="black" stroke="black" points="347.36,-94.52 349.29,-84.1 341.29,-91.04 347.36,-94.52"/>
-<text text-anchor="middle" x="344" y="-120.7" font-family="Times,serif" font-size="14.00">file_id</text>
+<path fill="none" stroke="black" d="M294.07,-185.41C311.92,-157.56 335.65,-120.53 353.71,-92.35"/>
+<polygon fill="black" stroke="black" points="356.58,-94.37 359.03,-84.06 350.68,-90.59 356.58,-94.37"/>
+<text text-anchor="middle" x="352" y="-120.7" font-family="Times,serif" font-size="14.00">file_id</text>
 </g>
 <!-- functions -->
 <g id="node3" class="node">
@@ -66,8 +68,8 @@
 <!-- functions&#45;&gt;benchmarks -->
 <g id="edge3" class="edge">
 <title>functions&#45;&gt;benchmarks</title>
-<path fill="none" stroke="black" d="M108.39,-168.65C117.44,-151.29 128.62,-132.77 141.38,-117.5 149.6,-107.66 159.47,-98.29 169.51,-89.84"/>
-<polygon fill="black" stroke="black" points="171.61,-92.64 177.17,-83.62 167.2,-87.21 171.61,-92.64"/>
+<path fill="none" stroke="black" d="M108.39,-168.65C117.44,-151.29 128.62,-132.77 141.38,-117.5 144.33,-113.96 147.5,-110.48 150.82,-107.09"/>
+<polygon fill="black" stroke="black" points="152.98,-109.87 157.69,-100.38 148.09,-104.86 152.98,-109.87"/>
 <text text-anchor="middle" x="180.38" y="-120.7" font-family="Times,serif" font-size="14.00">benchmark_id</text>
 </g>
 <!-- hosts -->
@@ -124,7 +126,7 @@
 <text text-anchor="start" x="333.88" y="-410.7" font-family="Times,serif" font-size="14.00">function_id : bigint (FK)</text>
 <text text-anchor="start" x="333.88" y="-394.2" font-family="Times,serif" font-size="14.00">x : numeric</text>
 <text text-anchor="start" x="333.88" y="-377.7" font-family="Times,serif" font-size="14.00">y : numeric</text>
-<text text-anchor="start" x="333.88" y="-361.2" font-family="Times,serif" font-size="14.00">input_values : text[]</text>
+<text text-anchor="start" x="333.88" y="-361.2" font-family="Times,serif" font-size="14.00">hash_value : integer</text>
 </g>
 <!-- results&#45;&gt;tests -->
 <g id="edge5" class="edge">
@@ -136,8 +138,8 @@
 <!-- runs&#45;&gt;benchmarks -->
 <g id="edge6" class="edge">
 <title>runs&#45;&gt;benchmarks</title>
-<path fill="none" stroke="black" d="M542.57,-152.07C521.36,-133.11 504.15,-117.84 503.38,-117.5 420.25,-81.51 385.99,-129.06 300.38,-99.5 292.41,-96.75 284.46,-92.98 276.87,-88.74"/>
-<polygon fill="black" stroke="black" points="278.81,-85.82 268.42,-83.72 275.23,-91.84 278.81,-85.82"/>
+<path fill="none" stroke="black" d="M542.57,-152.07C521.36,-133.11 504.15,-117.84 503.38,-117.5 425.22,-83.41 393.77,-124.89 312.38,-99.5 311.03,-99.08 309.68,-98.64 308.32,-98.17"/>
+<polygon fill="black" stroke="black" points="309.98,-95.06 299.39,-94.78 307.49,-101.6 309.98,-95.06"/>
 <text text-anchor="middle" x="560.38" y="-120.7" font-family="Times,serif" font-size="14.00">benchmark_id</text>
 </g>
 <!-- runs&#45;&gt;hosts -->
@@ -150,17 +152,17 @@
 <!-- commits -->
 <g id="node8" class="node">
 <title>commits</title>
-<polygon fill="none" stroke="black" points="459.25,-17 459.25,-82.5 603.5,-82.5 603.5,-17 459.25,-17"/>
-<text text-anchor="middle" x="531.38" y="-65.2" font-family="Times,serif" font-size="14.00">commits</text>
-<polyline fill="none" stroke="black" points="459.25,-58 603.5,-58"/>
-<text text-anchor="start" x="467.25" y="-40.7" font-family="Times,serif" font-size="14.00">id : bigint (PK)</text>
-<text text-anchor="start" x="467.25" y="-24.2" font-family="Times,serif" font-size="14.00">commit_hash : text (U)</text>
+<polygon fill="none" stroke="black" points="465.25,-17 465.25,-82.5 609.5,-82.5 609.5,-17 465.25,-17"/>
+<text text-anchor="middle" x="537.38" y="-65.2" font-family="Times,serif" font-size="14.00">commits</text>
+<polyline fill="none" stroke="black" points="465.25,-58 609.5,-58"/>
+<text text-anchor="start" x="473.25" y="-40.7" font-family="Times,serif" font-size="14.00">id : bigint (PK)</text>
+<text text-anchor="start" x="473.25" y="-24.2" font-family="Times,serif" font-size="14.00">commit_hash : text (U)</text>
 </g>
 <!-- runs&#45;&gt;commits -->
 <g id="edge8" class="edge">
 <title>runs&#45;&gt;commits</title>
-<path fill="none" stroke="black" d="M617.42,-152.1C614.44,-140.07 610.25,-128.09 604.38,-117.5 599,-107.81 591.7,-98.77 583.79,-90.66"/>
-<polygon fill="black" stroke="black" points="586.43,-88.35 576.8,-83.93 581.57,-93.39 586.43,-88.35"/>
+<path fill="none" stroke="black" d="M616.97,-152.02C614.03,-140.06 609.98,-128.13 604.38,-117.5 599.37,-108.01 592.56,-99.02 585.19,-90.89"/>
+<polygon fill="black" stroke="black" points="587.86,-88.62 578.41,-83.84 582.82,-93.47 587.86,-88.62"/>
 <text text-anchor="middle" x="641.38" y="-120.7" font-family="Times,serif" font-size="14.00">commit_id</text>
 </g>
 <!-- tests&#45;&gt;functions -->
@@ -182,15 +184,15 @@
 <!-- commit_files&#45;&gt;commits -->
 <g id="edge10" class="edge">
 <title>commit_files&#45;&gt;commits</title>
-<path fill="none" stroke="black" d="M436.75,-193.55C433.09,-171.11 431.7,-141.01 443.38,-117.5 448.43,-107.32 455.86,-98.28 464.29,-90.4"/>
-<polygon fill="black" stroke="black" points="466.56,-93.06 471.86,-83.88 462,-87.75 466.56,-93.06"/>
+<path fill="none" stroke="black" d="M436.53,-193.44C432.76,-170.94 431.33,-140.82 443.38,-117.5 448.73,-107.12 456.53,-98.01 465.38,-90.12"/>
+<polygon fill="black" stroke="black" points="467.46,-92.94 472.97,-83.89 463.02,-87.53 467.46,-92.94"/>
 <text text-anchor="middle" x="473.38" y="-120.7" font-family="Times,serif" font-size="14.00">commit_id</text>
 </g>
 <!-- commit_files&#45;&gt;files -->
 <g id="edge11" class="edge">
 <title>commit_files&#45;&gt;files</title>
-<path fill="none" stroke="black" d="M419.23,-193.28C407.24,-176.45 393.69,-155.03 385.12,-134 380.01,-121.43 376.41,-107.14 373.89,-93.99"/>
-<polygon fill="black" stroke="black" points="377.37,-93.54 372.21,-84.29 370.47,-94.74 377.37,-93.54"/>
+<path fill="none" stroke="black" d="M417.64,-193.33C405.41,-176.68 392.12,-155.41 385.12,-134 380.99,-121.33 379.21,-107.02 378.63,-93.87"/>
+<polygon fill="black" stroke="black" points="382.14,-94.13 378.43,-84.2 375.14,-94.27 382.14,-94.13"/>
 <text text-anchor="middle" x="402" y="-120.7" font-family="Times,serif" font-size="14.00">file_id</text>
 </g>
 </g>
