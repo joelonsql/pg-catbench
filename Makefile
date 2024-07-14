@@ -42,7 +42,7 @@ SQL_SRC = \
 	functions/next_benchmark.sql \
 	functions/generate_test.sql \
 	functions/insert_result.sql \
-	procedures/run_test.sql \
+	functions/schedule_run.sql \
 	procedures/merge_new_commits.sql \
 	views/vresults.sql \
 	benchmarks/numeric.sql

@@ -32,13 +32,15 @@ BEGIN ATOMIC
             todo_with_first_commit.commit_id
         FROM todo_with_first_commit
         WHERE todo_with_first_commit.commit_id = todo_with_first_commit.first_commit_id
-        RETURNING commit_id
     )
     SELECT
         catbench.commits.commit_hash,
         catbench.commits.id
-    FROM enqueue_benchmarks_for_commit
+    FROM catbench.runs
     JOIN catbench.commits
-    ON catbench.commits.id = enqueue_benchmarks_for_commit.commit_id
+    ON catbench.commits.id = catbench.runs.commit_id
+    WHERE catbench.runs.system_config_id = next_commit.system_config_id
+      AND catbench.runs.started_at IS NULL
+    ORDER BY catbench.commits.id
     LIMIT 1;
 END;
