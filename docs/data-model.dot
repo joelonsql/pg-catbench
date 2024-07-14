@@ -6,7 +6,7 @@ digraph pg_catbench {
     functions [label="{functions|id : bigint (PK)\lname : text (U)\lbenchmark_id : bigint (FK)\lx_label : text\ly_label : text\l}"];
     system_configs [label="{system_configs|id : uuid (PK)\lcpu_info : jsonb\los_info : jsonb\lcreated_at : timestamptz\l}"];
     results [label="{results|id : uuid (PK)\lexecution_time : float8\lrun_id : uuid (FK)\ltest_id : bigint (FK)\lresult_at : timestamptz\l}"];
-    runs [label="{runs|id : uuid (PK)\lbenchmark_id : bigint (FK)\lsystem_config_id : uuid (FK)\lcommit_id : bigint (FK)\lstarted_at : timestamptz\lfinished_at : timestamptz\l}"];
+    runs [label="{runs|id : uuid (PK)\lbenchmark_id : bigint (FK)\lsystem_config_id : uuid (FK)\lcommit_id : bigint (FK)\lcreated_at : timestamptz\lstarted_at : timestamptz\lfinished_at : timestamptz\l}"];
     tests [label="{tests|id : bigint (PK)\lfunction_id : bigint (FK)\lx : numeric\ly : numeric\lhash_value : integer\l}"];
     commits [label="{commits|id : bigint (PK)\lcommit_hash : text (U)\l}"];
     files [label="{files|id : bigint (PK)\lfile_path : text (U)\l}"];

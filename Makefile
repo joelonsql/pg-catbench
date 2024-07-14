@@ -37,7 +37,9 @@ SQL_SRC = \
 	functions/new_function.sql \
 	functions/get_commit_id.sql \
 	functions/mark_run_as_finished.sql \
-	functions/get_next_benchmark_run.sql \
+	functions/get_benchmarks_todo.sql \
+	functions/next_commit.sql \
+	functions/next_benchmark.sql \
 	functions/generate_test.sql \
 	functions/insert_result.sql \
 	procedures/run_test.sql \

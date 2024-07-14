@@ -61,28 +61,21 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
 
     loop {
         let rows = client.query(
-            "SELECT * FROM catbench.get_next_benchmark_run($1)",
+            "SELECT * FROM catbench.next_commit($1)",
             &[&system_config_id]
         )?;
 
         if rows.is_empty() {
-            println!("No more benchmark runs available for the provided system configuration.");
+            println!("No more commits to benchmark for this system configuration.");
             break;
         }
 
         let row = &rows[0];
-        let run_id: Uuid = row.get("run_id");
-        let benchmark_name: String = row.get("benchmark_name");
-        let benchmark_id: i64 = row.get("benchmark_id");
         let commit_hash: String = row.get("commit_hash");
         let commit_id: i64 = row.get("commit_id");
 
-        println!("Starting benchmark run:");
-        println!("  Run ID: {}", run_id);
-        println!("  Benchmark Name: {}", benchmark_name);
-        println!("  Benchmark ID: {}", benchmark_id);
-        println!("  Commit Hash: {}", commit_hash);
-        println!("  Commit ID: {}", commit_id);
+        println!("Commit Hash: {}", commit_hash);
+        println!("Commit ID: {}", commit_id);
 
         let postgresql_repo_path = "./postgresql_repo";
         if !Path::new(postgresql_repo_path).exists() {
@@ -100,7 +93,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
 
         let configure_path = format!("/tmp/{}", commit_hash);
         run_command(Command::new("./configure")
-            .args(&[format!("--prefix={}", configure_path), format!("--with-pgport={}", port), "--without-icu".to_string()])
+            .args(&[format!("--prefix={}", configure_path), format!("--with-pgport={}", port), "--without-icu".to_string(), "-C".to_string()])
             .current_dir(postgresql_repo_path))?;
 
         run_command(Command::new("make")
@@ -138,72 +131,97 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
         println!("CREATE EXTENSION timeit;");
         benchmark_client.execute("CREATE EXTENSION timeit;", &[])?;
 
-        println!("Starting benchmark...");
-        let test_ids: Vec<i64> = client.query(
-            "SELECT id FROM catbench.get_benchmark_test_ids($1)",
-            &[&benchmark_name],
-        )?.iter().map(|row| row.get(0)).collect();
+        loop {
 
-        let total_tests = test_ids.len() * 3;
-        let pb = ProgressBar::new(total_tests as u64);
-        pb.set_style(
-            ProgressStyle::default_bar()
-                .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")?
-                .progress_chars("#>-")
-        );
-
-        for _ in 0..3 {
-            client.execute(
-                "SELECT setseed(0)",
-                &[],
+            let rows = client.query(
+                "SELECT * FROM catbench.next_benchmark($1, $2)",
+                &[&system_config_id, &commit_id]
             )?;
-            for &test_id in &test_ids {
-                let rows = client.query(
-                    "SELECT * FROM catbench.generate_test($1)",
-                    &[&test_id]
-                )?;
 
-                if rows.is_empty() {
-                    panic!("catbench.generate_test() didn't return any row");
-                }
-
-                let row = &rows[0];
-                let function_name: String = row.get("function_name");
-                let input_values: Vec<String> = row.get("input_values");
-
-                let execution_time: f64 = benchmark_client.query_one(
-                    "
-                    SELECT timeit.f
-                    (
-                        function_name := $1,
-                        input_values := $2,
-                        significant_figures := 1,
-                        timeout := '10 seconds'::interval,
-                        attempts := 3,
-                        min_time := '10 ms'::interval
-                    )
-                    ",
-                    &[&function_name, &input_values],
-                )?.get(0);
-
-                client.execute("
-                    SELECT catbench.insert_result(
-                        test_id := $1,
-                        run_id := $2,
-                        execution_time := $3
-                    )",
-                    &[&test_id, &run_id, &execution_time],
-                )?;
-                pb.inc(1);
+            if rows.is_empty() {
+                println!("No more benchmarks to run for this commit.");
+                break;
             }
+
+            let row = &rows[0];
+            let run_id: Uuid = row.get("run_id");
+            let benchmark_name: String = row.get("benchmark_name");
+            let benchmark_id: i64 = row.get("benchmark_id");
+
+            println!("Run ID: {}", run_id);
+            println!("Commit Hash: {}", commit_hash);
+            println!("Commit ID: {}", commit_id);
+            println!("Benchmark Name: {}", benchmark_name);
+            println!("Benchmark ID: {}", benchmark_id);
+
+            println!("Starting benchmark...");
+            let test_ids: Vec<i64> = client.query(
+                "SELECT id FROM catbench.get_benchmark_test_ids($1)",
+                &[&benchmark_name],
+            )?.iter().map(|row| row.get(0)).collect();
+
+            let total_tests = test_ids.len() * 3;
+            let pb = ProgressBar::new(total_tests as u64);
+            pb.set_style(
+                ProgressStyle::default_bar()
+                    .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")?
+                    .progress_chars("#>-")
+            );
+
+            for _ in 0..3 {
+                client.execute(
+                    "SELECT setseed(0)",
+                    &[],
+                )?;
+                for &test_id in &test_ids {
+                    let rows = client.query(
+                        "SELECT * FROM catbench.generate_test($1)",
+                        &[&test_id]
+                    )?;
+
+                    if rows.is_empty() {
+                        panic!("catbench.generate_test() didn't return any row");
+                    }
+
+                    let row = &rows[0];
+                    let function_name: String = row.get("function_name");
+                    let input_values: Vec<String> = row.get("input_values");
+
+                    let execution_time: f64 = benchmark_client.query_one(
+                        "
+                        SELECT timeit.f
+                        (
+                            function_name := $1,
+                            input_values := $2,
+                            significant_figures := 1,
+                            timeout := '10 seconds'::interval,
+                            attempts := 3,
+                            min_time := '10 ms'::interval
+                        )
+                        ",
+                        &[&function_name, &input_values],
+                    )?.get(0);
+
+                    client.execute("
+                        SELECT catbench.insert_result(
+                            test_id := $1,
+                            run_id := $2,
+                            execution_time := $3
+                        )",
+                        &[&test_id, &run_id, &execution_time],
+                    )?;
+                    pb.inc(1);
+                }
+            }
+
+            pb.finish_with_message("Benchmark completed");
+
+            client.execute(
+                "SELECT catbench.mark_run_as_finished($1)",
+                &[&run_id],
+            )?;
+
         }
-
-        pb.finish_with_message("Benchmark completed");
-
-        client.execute(
-            "SELECT catbench.mark_run_as_finished($1)",
-            &[&run_id],
-        )?;
 
         run_command(Command::new(format!("{}/bin/pg_ctl", configure_path))
             .args(&["-D", &data_dir, "-m", "i", "stop"]))?;

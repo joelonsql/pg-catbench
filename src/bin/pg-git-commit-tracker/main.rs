@@ -8,7 +8,7 @@ use std::io::Write;
 fn main() -> Result<(), Box<dyn Error>> {
     let repo_url = "https://git.postgresql.org/git/postgresql.git";
     let repo_path = "postgresql_repo";
-    let since_tag = "REL_13_0";
+    let since_tag = "REL_14_0";
     let until_tag = "HEAD";
     let hash_regex = Regex::new(r"^[0-9a-f]{40}$").unwrap();
 
