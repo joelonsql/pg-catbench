@@ -92,8 +92,20 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
         drop(listener);
 
         let configure_path = format!("/tmp/{}", commit_hash);
+
+        let mut configure_args = vec![
+            format!("--prefix={}", configure_path), 
+            format!("--with-pgport={}", port),
+            "-C".to_string(),
+        ];
+
+        // Append "--without-icu" only for macOS
+        if cfg!(target_os = "macos") {
+            configure_args.push("--without-icu".to_string());
+        }
+
         run_command(Command::new("./configure")
-            .args(&[format!("--prefix={}", configure_path), format!("--with-pgport={}", port), "--without-icu".to_string(), "-C".to_string()])
+            .args(&configure_args)
             .current_dir(postgresql_repo_path))?;
 
         run_command(Command::new("make")

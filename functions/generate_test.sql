@@ -48,7 +48,7 @@ BEGIN
         INTO STRICT _new_hash_value;
     ELSE
         input_values := ARRAY[_xval];
-        EXECUTE format('SELECT %1$I(%2$I(%3$L))', _hash_function, _function_name, _xval)
+        EXECUTE format('SELECT %1$I(%2$I(%3$L))', _hash_function, function_name, _xval)
         INTO STRICT _new_hash_value;
     END IF;
 
