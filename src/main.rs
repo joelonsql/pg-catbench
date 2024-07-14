@@ -9,6 +9,8 @@ use uuid::Uuid;
 use wherr::wherr;
 use std::net::TcpListener;
 
+const NUM_ITERATIONS: usize = 10;
+
 #[wherr]
 fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
 
@@ -171,7 +173,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                 &[&benchmark_name],
             )?.iter().map(|row| row.get(0)).collect();
 
-            let total_tests = test_ids.len() * 3;
+            let total_tests = test_ids.len() * NUM_ITERATIONS;
             let pb = ProgressBar::new(total_tests as u64);
             pb.set_style(
                 ProgressStyle::default_bar()
@@ -179,7 +181,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                     .progress_chars("#>-")
             );
 
-            for _ in 0..10 {
+            for _ in 0..NUM_ITERATIONS {
                 client.execute(
                     "SELECT setseed(0)",
                     &[],
