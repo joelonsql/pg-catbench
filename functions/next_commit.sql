@@ -17,22 +17,22 @@ BEGIN ATOMIC
             todo.commit_id,
             FIRST_VALUE(commit_id) OVER (ORDER BY commit_id) AS first_commit_id
         FROM catbench.get_benchmarks_todo(next_commit.system_config_id) AS todo
-    ),
-    enqueue_benchmarks_for_commit AS
-    (
-        INSERT INTO catbench.runs
-        (
-            benchmark_id,
-            system_config_id,
-            commit_id
-        )
-        SELECT
-            todo_with_first_commit.benchmark_id,
-            next_commit.system_config_id,
-            todo_with_first_commit.commit_id
-        FROM todo_with_first_commit
-        WHERE todo_with_first_commit.commit_id = todo_with_first_commit.first_commit_id
     )
+    INSERT INTO catbench.runs
+    (
+        benchmark_id,
+        system_config_id,
+        commit_id
+    )
+    SELECT
+        todo_with_first_commit.benchmark_id,
+        next_commit.system_config_id,
+        todo_with_first_commit.commit_id
+    FROM todo_with_first_commit
+    WHERE todo_with_first_commit.commit_id = todo_with_first_commit.first_commit_id;
+    --
+    -- start new txn so SELECT will see the possibly newly INSERT'ed row
+    --
     SELECT
         catbench.commits.commit_hash,
         catbench.commits.id
