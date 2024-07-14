@@ -179,7 +179,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                     .progress_chars("#>-")
             );
 
-            for _ in 0..3 {
+            for _ in 0..10 {
                 client.execute(
                     "SELECT setseed(0)",
                     &[],
@@ -206,7 +206,6 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                             input_values := $2,
                             significant_figures := 1,
                             timeout := '10 seconds'::interval,
-                            attempts := 3,
                             min_time := '10 ms'::interval
                         )
                         ",
