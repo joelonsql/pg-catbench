@@ -45,8 +45,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
         "arch": System::cpu_arch().unwrap_or_else(|| "<unknown>".to_owned()),
         "cores": sys.physical_core_count().unwrap_or(0),
         "vendor_id": sys.cpus()[0].vendor_id(),
-        "brand": sys.cpus()[0].brand(),
-        "frequency": sys.cpus()[0].frequency()
+        "brand": sys.cpus()[0].brand()
     });
     let os_info = json!({
         "name": System::name().unwrap_or_else(|| "<unknown>".to_owned()),
