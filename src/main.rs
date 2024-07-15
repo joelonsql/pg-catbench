@@ -1,6 +1,7 @@
 use indicatif::{ProgressBar, ProgressStyle};
 use postgres::{Client, NoTls};
 use rand::seq::SliceRandom;
+use regex::Regex;
 use serde_json::json;
 use std::env;
 use std::net::TcpListener;
@@ -11,6 +12,7 @@ use uuid::Uuid;
 use wherr::wherr;
 
 const NUM_ITERATIONS: usize = 10;
+const TEMP_DIR: &str = "/tmp/pg-catbench";
 
 #[wherr]
 fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
@@ -30,6 +32,58 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
         }
         Ok(())
     }
+
+    // Stop any existing instances and clean up previous runs
+    fn cleanup_previous_runs() -> Result<(), Box<dyn std::error::Error>> {
+        let re = Regex::new(r"^[a-f0-9]{40}$")?;
+        if Path::new(TEMP_DIR).exists() {
+            for entry in std::fs::read_dir(TEMP_DIR)? {
+                let entry = entry?;
+                let entry_path = entry.path();
+                if entry.file_type()?.is_dir() {
+                    let dir_name = entry.file_name().into_string().unwrap();
+                    if re.is_match(&dir_name) {
+                        let data_dir = format!("{}-data", dir_name);
+                        let data_path = entry_path.parent().unwrap().join(&data_dir);
+                        if data_path.exists() {
+                            let pid_file = data_path.join("postmaster.pid");
+                            if pid_file.exists() {
+                                let pg_ctl_result = run_command(
+                                    Command::new(format!("{}/bin/pg_ctl", entry_path.display()))
+                                        .args(&[
+                                            "-D",
+                                            data_path.to_str().unwrap(),
+                                            "-m",
+                                            "i",
+                                            "stop",
+                                        ]),
+                                );
+                                if pg_ctl_result.is_err() {
+                                    println!(
+                                        "pg_ctl stop failed for {}. It might already be stopped.",
+                                        dir_name
+                                    );
+                                }
+                            }
+                            std::fs::remove_dir_all(data_path)?;
+                            std::fs::remove_dir_all(entry_path.clone())?;
+                            let log_file = format!("{}.log", dir_name);
+                            let log_path = entry_path.parent().unwrap().join(&log_file);
+                            if log_path.exists() {
+                                std::fs::remove_file(log_path)?;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    cleanup_previous_runs()?;
+
+    // Create temporary directory if it does not exist
+    std::fs::create_dir_all(TEMP_DIR)?;
 
     // Clone the pg-timeit repository if it doesn't exist,
     // otherwise pull the latest changes.
@@ -100,7 +154,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
         let port = listener.local_addr()?.port();
         drop(listener);
 
-        let configure_path = format!("/tmp/{}", commit_hash);
+        let configure_path = format!("{}/{}", TEMP_DIR, commit_hash);
 
         let mut configure_args = vec![
             format!("--prefix={}", configure_path),
@@ -137,7 +191,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                 .current_dir(postgresql_repo_path),
         )?;
 
-        let data_dir = format!("/tmp/{}-data", commit_hash);
+        let data_dir = format!("{}/{}-data", TEMP_DIR, commit_hash);
 
         run_command(
             Command::new(format!("{}/bin/initdb", configure_path)).args(&["-D", &data_dir]),
@@ -148,7 +202,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                 "-D",
                 &data_dir,
                 "-l",
-                &format!("/tmp/{}.log", commit_hash),
+                &format!("{}/{}.log", TEMP_DIR, commit_hash),
                 "start",
             ]),
         )?;
@@ -281,7 +335,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
 
         std::fs::remove_dir_all(&data_dir).expect("Failed to remove data directory");
         std::fs::remove_dir_all(&configure_path).expect("Failed to remove installation directory");
-        std::fs::remove_file(format!("/tmp/{}.log", commit_hash))
+        std::fs::remove_file(format!("{}/{}.log", TEMP_DIR, commit_hash))
             .expect("Failed to remove log file");
     }
 
