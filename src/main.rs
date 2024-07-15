@@ -1,19 +1,19 @@
+use indicatif::{ProgressBar, ProgressStyle};
 use postgres::{Client, NoTls};
+use rand::seq::SliceRandom;
 use serde_json::json;
 use std::env;
+use std::net::TcpListener;
 use std::path::Path;
 use std::process::{Command, Stdio};
 use sysinfo::System;
-use indicatif::{ProgressBar, ProgressStyle};
 use uuid::Uuid;
 use wherr::wherr;
-use std::net::TcpListener;
 
 const NUM_ITERATIONS: usize = 10;
 
 #[wherr]
 fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
-
     let timeit_repo_url = "https://github.com/joelonsql/pg-timeit.git";
     let timeit_repo_path = "pg-timeit";
 
@@ -22,7 +22,10 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
         println!("Running command: {:?}", command);
         let output = command.stderr(Stdio::piped()).output()?;
         if !output.status.success() {
-            eprintln!("Command failed: {}", String::from_utf8_lossy(&output.stderr));
+            eprintln!(
+                "Command failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            );
             return Err("Command execution failed".into());
         }
         Ok(())
@@ -31,12 +34,13 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
     // Clone the pg-timeit repository if it doesn't exist,
     // otherwise pull the latest changes.
     if !Path::new(timeit_repo_path).exists() {
-        run_command(Command::new("git")
-            .args(&["clone", timeit_repo_url, timeit_repo_path]))?;
+        run_command(Command::new("git").args(&["clone", timeit_repo_url, timeit_repo_path]))?;
     } else {
-        run_command(Command::new("git")
-            .args(&["pull"])
-            .current_dir(timeit_repo_path))?;
+        run_command(
+            Command::new("git")
+                .args(&["pull"])
+                .current_dir(timeit_repo_path),
+        )?;
     }
 
     let mut client = Client::connect("host=localhost", NoTls)?;
@@ -55,15 +59,17 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
         "os_version": System::os_version().unwrap_or_else(|| "<unknown>".to_owned())
     });
 
-    let system_config_id: Uuid = client.query_one(
-        "SELECT catbench.register_system_config($1::jsonb, $2::jsonb)",
-        &[&cpu_info, &os_info],
-    )?.get(0);
+    let system_config_id: Uuid = client
+        .query_one(
+            "SELECT catbench.register_system_config($1::jsonb, $2::jsonb)",
+            &[&cpu_info, &os_info],
+        )?
+        .get(0);
 
     loop {
         let rows = client.query(
             "SELECT * FROM catbench.next_commit($1)",
-            &[&system_config_id]
+            &[&system_config_id],
         )?;
 
         if rows.is_empty() {
@@ -83,9 +89,11 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
             panic!("PostgreSQL repository path does not exist");
         }
 
-        run_command(Command::new("git")
-            .args(&["checkout", &commit_hash])
-            .current_dir(postgresql_repo_path))?;
+        run_command(
+            Command::new("git")
+                .args(&["checkout", &commit_hash])
+                .current_dir(postgresql_repo_path),
+        )?;
 
         // Find an unused TCP/IP port above 1024 to use for the PostgreSQL installation
         let listener = TcpListener::bind("127.0.0.1:0")?;
@@ -95,7 +103,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
         let configure_path = format!("/tmp/{}", commit_hash);
 
         let mut configure_args = vec![
-            format!("--prefix={}", configure_path), 
+            format!("--prefix={}", configure_path),
             format!("--with-pgport={}", port),
             "-C".to_string(),
         ];
@@ -105,50 +113,81 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
             configure_args.push("--without-icu".to_string());
         }
 
-        run_command(Command::new("./configure")
-            .args(&configure_args)
-            .current_dir(postgresql_repo_path))?;
+        run_command(
+            Command::new("./configure")
+                .args(&configure_args)
+                .current_dir(postgresql_repo_path),
+        )?;
 
-        run_command(Command::new("make")
-            .arg("clean")
-            .current_dir(postgresql_repo_path))?;
+        run_command(
+            Command::new("make")
+                .arg("clean")
+                .current_dir(postgresql_repo_path),
+        )?;
 
-        run_command(Command::new("make")
-            .arg("-j33")
-            .current_dir(postgresql_repo_path))?;
+        run_command(
+            Command::new("make")
+                .arg("-j33")
+                .current_dir(postgresql_repo_path),
+        )?;
 
-        run_command(Command::new("make")
-            .arg("install")
-            .current_dir(postgresql_repo_path))?;
+        run_command(
+            Command::new("make")
+                .arg("install")
+                .current_dir(postgresql_repo_path),
+        )?;
 
         let data_dir = format!("/tmp/{}-data", commit_hash);
 
-        run_command(Command::new(format!("{}/bin/initdb", configure_path))
-            .args(&["-D", &data_dir]))?;
+        run_command(
+            Command::new(format!("{}/bin/initdb", configure_path)).args(&["-D", &data_dir]),
+        )?;
 
-        run_command(Command::new(format!("{}/bin/pg_ctl", configure_path))
-            .args(&["-D", &data_dir, "-l", &format!("/tmp/{}.log", commit_hash), "start"]))?;
+        run_command(
+            Command::new(format!("{}/bin/pg_ctl", configure_path)).args(&[
+                "-D",
+                &data_dir,
+                "-l",
+                &format!("/tmp/{}.log", commit_hash),
+                "start",
+            ]),
+        )?;
 
-        run_command(Command::new("make")
-            .args(&["clean", "install"])
-            .current_dir(timeit_repo_path)
-            .env("PATH", format!("{}/bin:{}", configure_path, env::var("PATH").unwrap_or_default())))?;
+        run_command(
+            Command::new("make")
+                .args(&["clean", "install"])
+                .current_dir(timeit_repo_path)
+                .env(
+                    "PATH",
+                    format!(
+                        "{}/bin:{}",
+                        configure_path,
+                        env::var("PATH").unwrap_or_default()
+                    ),
+                ),
+        )?;
 
-        run_command(Command::new(format!("{}/bin/createdb", configure_path))
-            .args(&["-p", &port.to_string(), "catbench"]))?;
+        run_command(
+            Command::new(format!("{}/bin/createdb", configure_path)).args(&[
+                "-p",
+                &port.to_string(),
+                "catbench",
+            ]),
+        )?;
 
         println!("Connecting to PostgreSQL instance at port {}", port);
         let mut benchmark_client = Client::connect(
-            &format!("host=localhost port={} dbname=catbench", port), NoTls)?;
+            &format!("host=localhost port={} dbname=catbench", port),
+            NoTls,
+        )?;
 
         println!("CREATE EXTENSION timeit;");
         benchmark_client.execute("CREATE EXTENSION timeit;", &[])?;
 
         loop {
-
             let rows = client.query(
                 "SELECT * FROM catbench.next_benchmark($1, $2)",
-                &[&system_config_id, &commit_id]
+                &[&system_config_id, &commit_id],
             )?;
 
             if rows.is_empty() {
@@ -168,10 +207,14 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
             println!("Benchmark ID: {}", benchmark_id);
 
             println!("Starting benchmark...");
-            let test_ids: Vec<i64> = client.query(
-                "SELECT id FROM catbench.get_benchmark_test_ids($1)",
-                &[&benchmark_name],
-            )?.iter().map(|row| row.get(0)).collect();
+            let test_ids: Vec<i64> = client
+                .query(
+                    "SELECT id FROM catbench.get_benchmark_test_ids($1)",
+                    &[&benchmark_name],
+                )?
+                .iter()
+                .map(|row| row.get(0))
+                .collect();
 
             let total_tests = test_ids.len() * NUM_ITERATIONS;
             let pb = ProgressBar::new(total_tests as u64);
@@ -182,15 +225,12 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
             );
 
             for _ in 0..NUM_ITERATIONS {
-                client.execute(
-                    "SELECT setseed(0)",
-                    &[],
-                )?;
-                for &test_id in &test_ids {
-                    let rows = client.query(
-                        "SELECT * FROM catbench.generate_test($1)",
-                        &[&test_id]
-                    )?;
+                let mut shuffled_test_ids = test_ids.clone();
+                let mut rng = rand::thread_rng();
+                shuffled_test_ids.shuffle(&mut rng);
+                for &test_id in &shuffled_test_ids {
+                    let rows =
+                        client.query("SELECT * FROM catbench.generate_test($1)", &[&test_id])?;
 
                     if rows.is_empty() {
                         panic!("catbench.generate_test() didn't return any row");
@@ -200,21 +240,24 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                     let function_name: String = row.get("function_name");
                     let input_values: Vec<String> = row.get("input_values");
 
-                    let execution_time: f64 = benchmark_client.query_one(
-                        "
+                    let execution_time: f64 = benchmark_client
+                        .query_one(
+                            "
                         SELECT timeit.f
                         (
                             function_name := $1,
                             input_values := $2,
                             significant_figures := 1,
                             timeout := '10 seconds'::interval,
-                            min_time := '10 ms'::interval
+                            min_time := '50 ms'::interval
                         )
                         ",
-                        &[&function_name, &input_values],
-                    )?.get(0);
+                            &[&function_name, &input_values],
+                        )?
+                        .get(0);
 
-                    client.execute("
+                    client.execute(
+                        "
                         SELECT catbench.insert_result(
                             test_id := $1,
                             run_id := $2,
@@ -228,20 +271,18 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
 
             pb.finish_with_message("Benchmark completed");
 
-            client.execute(
-                "SELECT catbench.mark_run_as_finished($1)",
-                &[&run_id],
-            )?;
-
+            client.execute("SELECT catbench.mark_run_as_finished($1)", &[&run_id])?;
         }
 
-        run_command(Command::new(format!("{}/bin/pg_ctl", configure_path))
-            .args(&["-D", &data_dir, "-m", "i", "stop"]))?;
+        run_command(
+            Command::new(format!("{}/bin/pg_ctl", configure_path))
+                .args(&["-D", &data_dir, "-m", "i", "stop"]),
+        )?;
 
         std::fs::remove_dir_all(&data_dir).expect("Failed to remove data directory");
         std::fs::remove_dir_all(&configure_path).expect("Failed to remove installation directory");
-        std::fs::remove_file(format!("/tmp/{}.log", commit_hash)).expect("Failed to remove log file");
-
+        std::fs::remove_file(format!("/tmp/{}.log", commit_hash))
+            .expect("Failed to remove log file");
     }
 
     Ok(())

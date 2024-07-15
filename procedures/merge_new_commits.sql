@@ -25,6 +25,24 @@ INSERT INTO catbench.commits (commit_hash)
 SELECT commit_hash FROM sort_new_commits
 ORDER BY id DESC;
 --
+-- update parent_hash for new commits
+--
+WITH
+commit_history AS
+(
+    SELECT
+        id,
+        commit_hash,
+        LAG(commit_hash) OVER (ORDER BY id) AS parent_hash
+    FROM catbench.commits
+)
+UPDATE catbench.commits
+SET parent_hash = commit_history.parent_hash
+FROM commit_history
+WHERE catbench.commits.id = commit_history.id
+  AND catbench.commits.parent_hash IS NULL
+  AND commit_history.parent_hash IS NOT NULL;
+--
 -- insert new files
 --
 INSERT INTO catbench.files (file_path)

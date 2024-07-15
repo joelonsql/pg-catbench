@@ -1,9 +1,9 @@
-use std::process::{Command, Stdio};
-use std::path::Path;
+use postgres::{Client, NoTls};
 use regex::Regex;
 use std::error::Error;
-use postgres::{Client, NoTls};
 use std::io::Write;
+use std::path::Path;
+use std::process::{Command, Stdio};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let repo_url = "https://git.postgresql.org/git/postgresql.git";
@@ -40,13 +40,21 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Get the log of changes
     let log_output = Command::new("git")
-        .args(&["log", "--name-only", "--pretty=format:%H", &format!("{}..{}", since_tag, until_tag)])
+        .args(&[
+            "log",
+            "--name-only",
+            "--pretty=format:%H",
+            &format!("{}..{}", since_tag, until_tag),
+        ])
         .current_dir(repo_path)
         .output()
         .expect("Failed to execute git log command");
 
     if !log_output.status.success() {
-        eprintln!("Failed to get git log: {}", String::from_utf8_lossy(&log_output.stderr));
+        eprintln!(
+            "Failed to get git log: {}",
+            String::from_utf8_lossy(&log_output.stderr)
+        );
         return Err(Box::from("Failed to get git log"));
     }
 
@@ -68,7 +76,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut client = Client::connect("host=localhost", NoTls)?;
 
     // Create the temporary table
-    client.batch_execute("
+    client.batch_execute(
+        "
         CREATE TEMP TABLE pg_temp.commit_files
         (
             id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
@@ -77,10 +86,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             PRIMARY KEY (id),
             CHECK (commit_hash ~ '^[0-9a-f]{40}$')
         );
-    ")?;
+    ",
+    )?;
 
     // Copy data to the temporary table
-    let mut copy_in = client.copy_in("COPY pg_temp.commit_files (commit_hash, file_path) FROM stdin WITH CSV")?;
+    let mut copy_in =
+        client.copy_in("COPY pg_temp.commit_files (commit_hash, file_path) FROM stdin WITH CSV")?;
     let writer = &mut copy_in;
 
     for (commit_hash, file_path) in data_to_insert {
@@ -89,11 +100,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     copy_in.finish()?;
 
-    client.batch_execute("
+    client.batch_execute(
+        "
         CREATE INDEX ON pg_temp.commit_files (commit_hash);
         CREATE INDEX ON pg_temp.commit_files (file_path);
         CALL catbench.merge_new_commits();
-    ")?;
+    ",
+    )?;
 
     Ok(())
 }

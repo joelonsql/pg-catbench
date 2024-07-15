@@ -15,6 +15,7 @@ DECLARE
     _yval text;
     _cur_hash_value integer;
     _new_hash_value integer;
+    _seed_value float8;
 BEGIN
     SELECT
         catbench.benchmarks.generate_function,
@@ -22,20 +23,24 @@ BEGIN
         catbench.functions.name,
         catbench.tests.x,
         catbench.tests.y,
-        catbench.tests.hash_value
+        catbench.tests.hash_value,
+        catbench.tests.seed_value
     INTO STRICT
         _generate_function,
         _hash_function,
         function_name,
         _x,
         _y,
-        _cur_hash_value
+        _cur_hash_value,
+        _seed_value
     FROM catbench.tests
     JOIN catbench.functions
       ON catbench.functions.id = catbench.tests.function_id
     JOIN catbench.benchmarks
       ON catbench.benchmarks.id = catbench.functions.benchmark_id
     WHERE catbench.tests.id = generate_test.test_id;
+
+    PERFORM setseed(_seed_value);
 
     EXECUTE format('SELECT catbench.%1$I(%2$L::numeric)::text', _generate_function, _x)
     INTO STRICT _xval;

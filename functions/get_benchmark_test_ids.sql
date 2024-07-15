@@ -10,6 +10,5 @@ BEGIN ATOMIC
     JOIN catbench.tests
       ON catbench.tests.function_id = catbench.functions.id
     WHERE catbench.benchmarks.name = get_benchmark_test_ids.benchmark_name
-    -- return in pseudo-random deterministic order
-    ORDER BY hashint8(catbench.tests.id);
+    ORDER BY catbench.tests.id;
 END;
