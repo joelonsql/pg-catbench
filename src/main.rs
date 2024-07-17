@@ -4,9 +4,11 @@ use rand::seq::SliceRandom;
 use regex::Regex;
 use serde_json::json;
 use std::env;
+use std::fs;
 use std::net::TcpListener;
 use std::path::Path;
 use std::process::{Command, Stdio};
+use std::str::FromStr;
 use sysinfo::System;
 use uuid::Uuid;
 use wherr::wherr;
@@ -79,6 +81,26 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
         }
         Ok(())
     }
+
+    // Function to extract the first isolated CPU core from /proc/cmdline
+    fn get_first_isolated_cpu() -> Option<i32> {
+        if let Ok(cmdline) = fs::read_to_string("/proc/cmdline") {
+            if let Some(captures) = Regex::new(r"isolcpus=(\d+)")
+                .unwrap()
+                .captures(&cmdline)
+            {
+                if let Some(isolcpus) = captures.get(1) {
+                    if let Ok(first_cpu) = i32::from_str(isolcpus.as_str()) {
+                        return Some(first_cpu);
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    let core_id = get_first_isolated_cpu().unwrap_or(-1);
+    println!("Using core_id: {}", core_id);
 
     cleanup_previous_runs()?;
 
@@ -303,10 +325,11 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                             input_values := $2,
                             significant_figures := 1,
                             timeout := '10 seconds'::interval,
-                            min_time := '50 ms'::interval
+                            min_time := '50 ms'::interval,
+                            core_id := $3
                         )
                         ",
-                            &[&function_name, &input_values],
+                            &[&function_name, &input_values, &core_id],
                         )?
                         .get(0);
 
