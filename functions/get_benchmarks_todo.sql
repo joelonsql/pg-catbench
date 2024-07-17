@@ -23,6 +23,13 @@ BEGIN ATOMIC
             id,
             LAG(id) OVER (ORDER BY id) AS prev_id
         FROM catbench.commits
+        --
+        -- Benchmark all commits since REL_12_BETA1
+        --
+        WHERE id >
+        (
+            SELECT id FROM catbench.commits WHERE commit_hash = 'a240570b1e3802d1e82da08a9d72abeade370249'
+        )
     )
     SELECT DISTINCT
         catbench.benchmarks.name,
