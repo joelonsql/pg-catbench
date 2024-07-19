@@ -5,3 +5,5 @@ CREATE TABLE catbench.files
     PRIMARY KEY (id),
     UNIQUE (file_path)
 );
+
+SELECT pg_catalog.pg_extension_config_dump('catbench.files', '');

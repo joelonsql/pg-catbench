@@ -9,3 +9,5 @@ CREATE TABLE catbench.tests
     PRIMARY KEY (id),
     FOREIGN KEY (function_id) REFERENCES catbench.functions (id)
 );
+
+SELECT pg_catalog.pg_extension_config_dump('catbench.tests', '');

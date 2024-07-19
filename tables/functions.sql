@@ -9,3 +9,5 @@ CREATE TABLE catbench.functions
     UNIQUE (name),
     FOREIGN KEY (benchmark_id) REFERENCES catbench.benchmarks (id)
 );
+
+SELECT pg_catalog.pg_extension_config_dump('catbench.functions', '');
