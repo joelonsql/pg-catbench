@@ -10,3 +10,5 @@ CREATE TABLE catbench.commits
     UNIQUE (commit_hash),
     CHECK (commit_hash ~ '^[0-9a-f]{40}$')
 );
+
+SELECT pg_catalog.pg_extension_config_dump('catbench.commits', '');

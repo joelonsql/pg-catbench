@@ -9,3 +9,5 @@ CREATE TABLE catbench.results
     FOREIGN KEY (run_id) REFERENCES catbench.runs (id),
     FOREIGN KEY (test_id) REFERENCES catbench.tests (id)
 );
+
+SELECT pg_catalog.pg_extension_config_dump('catbench.results', '');

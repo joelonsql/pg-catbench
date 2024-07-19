@@ -6,3 +6,5 @@ CREATE TABLE catbench.system_configs
     created_at timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (id)
 );
+
+SELECT pg_catalog.pg_extension_config_dump('catbench.system_configs', '');

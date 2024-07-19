@@ -6,3 +6,5 @@ CREATE TABLE catbench.commit_files
 );
 
 CREATE INDEX ON catbench.commit_files (file_id);
+
+SELECT pg_catalog.pg_extension_config_dump('catbench.commit_files', '');

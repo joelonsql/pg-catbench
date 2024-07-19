@@ -25,6 +25,7 @@ SQL_SRC = \
 	tables/files.sql \
 	tables/commit_files.sql \
 	tables/benchmark_files.sql \
+	tables/compilations.sql \
 	tables/runs.sql \
 	tables/results.sql \
 	functions/register_system_config.sql \
@@ -38,11 +39,11 @@ SQL_SRC = \
 	functions/get_commit_id.sql \
 	functions/mark_run_as_finished.sql \
 	functions/get_benchmarks_todo.sql \
-	functions/next_commit.sql \
 	functions/next_benchmark.sql \
 	functions/generate_test.sql \
 	functions/insert_result.sql \
 	functions/schedule_run.sql \
+	functions/set_executable_hash.sql \
 	procedures/merge_new_commits.sql \
 	views/vresults.sql \
 	benchmarks/numeric.sql
