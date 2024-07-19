@@ -300,7 +300,30 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                     .progress_chars("#>-")
             );
 
-            for _ in 0..NUM_ITERATIONS {
+            for iteration in 0..NUM_ITERATIONS {
+                println!("Iteration {}/{}...", iteration + 1, NUM_ITERATIONS);
+                benchmark_client.close().expect("Failed to close benchmark client connection");
+
+                run_command(
+                    Command::new(format!("{}/bin/pg_ctl", configure_path))
+                        .args(&["-D", &data_dir, "stop"]),
+                )?;
+
+                run_command(
+                    Command::new(format!("{}/bin/pg_ctl", configure_path)).args(&[
+                        "-D",
+                        &data_dir,
+                        "-l",
+                        &format!("{}/{}.log", TEMP_DIR, commit_hash),
+                        "start",
+                    ]),
+                )?;
+
+                benchmark_client = Client::connect(
+                    &format!("host=localhost port={} dbname=catbench", port),
+                    NoTls,
+                )?;
+
                 let mut shuffled_test_ids = test_ids.clone();
                 let mut rng = rand::thread_rng();
                 shuffled_test_ids.shuffle(&mut rng);
