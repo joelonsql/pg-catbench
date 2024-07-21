@@ -1,7 +1,3 @@
-//
-// TODO: TEST RESTART PG BEFORE EACH BENCHMARK
-// TODO: DISCONNECT RESULT DB BEFORE CONNECTING TO TMP DB FOR COMMIT
-
 use indicatif::{ProgressBar, ProgressStyle};
 use postgres::{Client, NoTls};
 use regex::Regex;
@@ -19,7 +15,7 @@ use std::fs::File;
 use std::io::Read;
 use hex;
 
-const TEMP_DIR: &str = "/tmp/pg-catbench";
+const TEMP_DIR: &str = "./compiled_postgresql_commits";
 const TEMP_PORT: u16 = 54321;
 const TIMEIT_REPO_URL: &str = "https://github.com/joelonsql/pg-timeit.git";
 const TIMEIT_REPO_PATH: &str = "pg-timeit";
