@@ -4,6 +4,7 @@ use regex::Regex;
 use serde_json::json;
 use std::env;
 use std::fs;
+use std::fs::canonicalize;
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::str::FromStr;
@@ -210,7 +211,11 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
 
         cleanup_commit(commit_hash)?;
 
-        let configure_path = format!("{}/{}", TEMP_DIR, commit_hash);
+        let configure_path_rel = format!("{}/{}", TEMP_DIR, commit_hash);
+        std::fs::create_dir_all(&configure_path_rel)?;
+        let configure_path = canonicalize(&configure_path_rel)?
+            .display()
+            .to_string();
 
         if !Path::new(POSTGRESQL_REPO_PATH).exists() {
             panic!("PostgreSQL repository path does not exist");
