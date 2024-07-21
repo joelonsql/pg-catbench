@@ -1,15 +1,17 @@
 CREATE OR REPLACE FUNCTION catbench.insert_result
 (
-    test_id bigint,
-    run_id uuid,
-    execution_time float8
+    execution_time float8,
+    benchmark_id bigint,
+    system_config_id uuid,
+    commit_id bigint,
+    test_id bigint
 )
 RETURNS uuid
 LANGUAGE SQL
 BEGIN ATOMIC
     INSERT INTO catbench.results
-        (test_id, run_id, execution_time)
+        (execution_time, benchmark_id, system_config_id, commit_id, test_id)
     VALUES
-        (test_id, run_id, execution_time)
+        (execution_time, benchmark_id, system_config_id, commit_id, test_id)
     RETURNING id;
 END;

@@ -4,7 +4,7 @@ q AS
 (
     SELECT
         catbench.benchmarks.name AS benchmark_name,
-        catbench.runs.system_config_id,
+        catbench.results.system_config_id,
         catbench.functions.name AS function_name,
         catbench.tests.x,
         catbench.tests.y,
@@ -16,19 +16,17 @@ q AS
         STDDEV(catbench.results.execution_time) AS stddev,
         COUNT(*) AS n
     FROM catbench.results
-    JOIN catbench.runs
-      ON catbench.runs.id = catbench.results.run_id
     JOIN catbench.benchmarks
-      ON catbench.benchmarks.id = catbench.runs.benchmark_id
+      ON catbench.benchmarks.id = catbench.results.benchmark_id
     JOIN catbench.commits
-      ON catbench.commits.id = catbench.runs.commit_id
+      ON catbench.commits.id = catbench.results.commit_id
     JOIN catbench.tests
       ON catbench.tests.id = catbench.results.test_id
     JOIN catbench.functions
       ON catbench.functions.id = catbench.tests.function_id
     GROUP BY
         catbench.benchmarks.name,
-        catbench.runs.system_config_id,
+        catbench.results.system_config_id,
         catbench.functions.name,
         catbench.tests.x,
         catbench.tests.y,

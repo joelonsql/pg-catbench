@@ -1,14 +1,11 @@
-CREATE OR REPLACE FUNCTION catbench.get_benchmarks_todo
-(
-    system_config_id uuid
-)
+CREATE OR REPLACE FUNCTION catbench.generate_benchmark_commit_permutations()
 RETURNS TABLE
 (
     benchmark_id bigint,
     benchmark_name text,
     commit_id bigint,
     commit_hash text,
-    count_runs bigint
+    test_id bigint
 )
 LANGUAGE SQL
 BEGIN ATOMIC
@@ -33,28 +30,31 @@ BEGIN ATOMIC
         )
         --
         -- Benchmark all commits since REL_12_BETA1
+        -- a240570b1e3802d1e82da08a9d72abeade370249
         --
         AND catbench.commits.id >
         (
             SELECT REL_12_BETA1.id
             FROM catbench.commits AS REL_12_BETA1
+            -- Temp set it to 571f7f70865cdaf1a49e7934208ad139575e3f03
+            -- which is since Jul 9 2024. Change back when we have evaluated.
             WHERE REL_12_BETA1.commit_hash = '571f7f70865cdaf1a49e7934208ad139575e3f03'
         )
     ),
     with_parents AS
     (
         SELECT
-            change_commits.commit_id,
-            change_commits.commit_hash,
             change_commits.benchmark_id,
-            change_commits.benchmark_name
+            change_commits.benchmark_name,
+            change_commits.commit_id,
+            change_commits.commit_hash
         FROM change_commits
         UNION
         SELECT
-            parent_commit.id,
-            parent_commit.commit_hash,
             change_commits.benchmark_id,
-            change_commits.benchmark_name
+            change_commits.benchmark_name,
+            parent_commit.id,
+            parent_commit.commit_hash
         FROM change_commits
         JOIN catbench.commits AS parent_commit
           ON parent_commit.commit_hash = change_commits.parent_hash
@@ -64,12 +64,11 @@ BEGIN ATOMIC
         with_parents.benchmark_name,
         with_parents.commit_id,
         with_parents.commit_hash,
-        (
-            SELECT COUNT(*)
-            FROM catbench.runs
-            WHERE catbench.runs.commit_id = with_parents.commit_id
-              AND catbench.runs.benchmark_id = with_parents.benchmark_id
-              AND catbench.runs.system_config_id = get_benchmarks_todo.system_config_id
-        )
-    FROM with_parents;
+        catbench.tests.id AS test_id
+    FROM with_parents
+    JOIN catbench.functions
+      ON catbench.functions.benchmark_id = with_parents.benchmark_id
+    JOIN catbench.tests
+      ON catbench.tests.function_id = catbench.functions.id
+    ORDER BY random();
 END;

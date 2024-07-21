@@ -26,10 +26,12 @@ SQL_SRC = \
 	tables/commit_files.sql \
 	tables/benchmark_files.sql \
 	tables/compilations.sql \
-	tables/runs.sql \
 	tables/results.sql \
 	functions/register_system_config.sql \
 	functions/new_benchmark.sql \
+	functions/generate_benchmark_commit_permutations.sql \
+	functions/count_benchmark_results_for_system_config.sql \
+	functions/get_tests_for_next_cycle.sql \
 	functions/get_benchmark_id.sql \
 	functions/get_benchmark_test_ids.sql \
 	functions/get_function_id.sql \
@@ -37,13 +39,10 @@ SQL_SRC = \
 	functions/new_benchmark_file.sql \
 	functions/new_function.sql \
 	functions/get_commit_id.sql \
-	functions/mark_run_as_finished.sql \
-	functions/get_benchmarks_todo.sql \
-	functions/next_benchmark.sql \
 	functions/generate_test.sql \
 	functions/insert_result.sql \
-	functions/schedule_run.sql \
 	functions/set_executable_hash.sql \
+	functions/get_executable_hash.sql \
 	procedures/merge_new_commits.sql \
 	views/vresults.sql \
 	views/vreport.sql \

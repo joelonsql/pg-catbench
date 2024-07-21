@@ -4,7 +4,6 @@
 
 use indicatif::{ProgressBar, ProgressStyle};
 use postgres::{Client, NoTls};
-use rand::seq::SliceRandom;
 use regex::Regex;
 use serde_json::json;
 use std::env;
@@ -25,6 +24,7 @@ const TEMP_PORT: u16 = 54321;
 const TIMEIT_REPO_URL: &str = "https://github.com/joelonsql/pg-timeit.git";
 const TIMEIT_REPO_PATH: &str = "pg-timeit";
 const POSTGRESQL_REPO_PATH: &str = "./postgresql_repo";
+const MAX_TARGET_RESULT_COUNT: i64 = 3;
 
 /// Compute the SHA-512 hash of a file and return it as a hexadecimal encoded text string.
 fn compute_sha512_hex(file_path: &Path) -> Result<String, Box<dyn std::error::Error>> {
@@ -297,6 +297,13 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
             ]),
         )?;
 
+        let mut benchmark_client = Client::connect(
+            &format!("host=localhost port={} dbname=catbench", TEMP_PORT),
+            NoTls,
+        )?;
+
+        benchmark_client.execute("CREATE EXTENSION timeit;", &[])?;
+
         Ok(())
     }
 
@@ -315,6 +322,14 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         None
+    }
+
+    fn get_executable_hash(client: &mut Client, system_config_id: Uuid, commit_id: i64) -> Result<Option<String>, Box<dyn std::error::Error>>  {
+        let row = client.query_one(
+            "SELECT catbench.get_executable_hash($1, $2)",
+            &[&system_config_id, &commit_id]
+        )?;
+        Ok(row.get(0))
     }
 
     let core_id = get_first_isolated_cpu().unwrap_or(-1);
@@ -359,111 +374,99 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
         .get(0);
 
     loop {
+        println!("Starting a new benchmark test cycle...");
+
         let rows = client.query(
-            "SELECT * FROM catbench.next_benchmark($1)",
-            &[&system_config_id],
+            "SELECT * FROM catbench.get_tests_for_next_cycle($1, $2)",
+            &[&system_config_id, &MAX_TARGET_RESULT_COUNT],
         )?;
 
         if rows.is_empty() {
-            println!("No more benchmarks to run for this system configuration.");
+            println!("No more tests to run for this system configuration.");
             break;
         }
 
-        let row = &rows[0];
-        let run_id: Uuid = row.get("run_id");
-        let benchmark_id: i64 = row.get("benchmark_id");
-        let benchmark_name: String = row.get("benchmark_name");
-        let commit_id: i64 = row.get("commit_id");
-        let commit_hash: String = row.get("commit_hash");
-        let executable_hash: Option<String> = row.get("executable_hash");
-
-        println!("Run ID: {}", run_id);
-        println!("Benchmark Name: {}", benchmark_name);
-        println!("Benchmark ID: {}", benchmark_id);
-        println!("Commit Hash: {}", commit_hash);
-        println!("Commit ID: {}", commit_id);
-        println!("Executable Hash: {:?}", executable_hash);
-
-        let configure_path = format!("{}/{}", TEMP_DIR, commit_hash);
-        let executable_path = Path::new(&configure_path).join("bin/postgres");
-
-        let mut should_compile = true;
-        println!("Checking if we need to compile or if we can reuse existing...");
-        if let Some(stored_hash) = executable_hash {
-            if Path::new(&configure_path).exists() {
-                if executable_path.exists() {
-                    let computed_hash = compute_sha512_hex(&executable_path)?;
-                    if computed_hash == stored_hash {
-                        should_compile = false;
-                        println!("Executable hash matches. Proceeding...");
-                        stop_if_started(&commit_hash)?;
-                        start_postgres(&commit_hash)?;
-                    } else {
-                        println!("Executable hash mismatch! Expected {}, found {}", stored_hash, computed_hash);
-                    }
-                } else {
-                    println!("Executable not found at {}", executable_path.display());
-                }
-            }
-        }
-        if should_compile {
-            compile_postgres(&commit_hash)?;
-            if executable_path.exists() {
-                let computed_hash = compute_sha512_hex(&executable_path)?;
-                client.execute(
-                    "
-                    SELECT catbench.set_executable_hash(
-                        system_config_id := $1,
-                        commit_id := $2,
-                        executable_hash := $3
-                    )",
-                    &[&system_config_id, &commit_id, &computed_hash],
-                )?;
-            } else {
-                panic!("Compiled but executable not found at {}", executable_path.display());
-            }
-        }
-
-        println!("Connecting to PostgreSQL instance at port {}", TEMP_PORT);
-        let mut benchmark_client = Client::connect(
-            &format!("host=localhost port={} dbname=catbench", TEMP_PORT),
-            NoTls,
-        )?;
-
-        benchmark_client.execute("CREATE EXTENSION IF NOT EXISTS timeit;", &[])?;
-
-        println!("Starting benchmark...");
-        let test_ids: Vec<i64> = client
-            .query(
-                "SELECT id FROM catbench.get_benchmark_test_ids($1)",
-                &[&benchmark_name],
-            )?
-            .iter()
-            .map(|row| row.get(0))
-            .collect();
-
-        let num_tests = test_ids.len();
+        let num_tests = rows.len();
         let pb = ProgressBar::new(num_tests as u64);
         pb.set_style(
             ProgressStyle::default_bar()
-                .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")?
-                .progress_chars("#>-")
+                .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")
+                .unwrap()
+                .progress_chars("#>-"),
         );
 
-        let mut shuffled_test_ids = test_ids.clone();
-        let mut rng = rand::thread_rng();
-        shuffled_test_ids.shuffle(&mut rng);
-        for &test_id in &shuffled_test_ids {
-            let rows =
+        for row in &rows {
+            let benchmark_id: i64 = row.get("benchmark_id");
+            let benchmark_name: String = row.get("benchmark_name");
+            let commit_id: i64 = row.get("commit_id");
+            let commit_hash: String = row.get("commit_hash");
+            let test_id: i64 = row.get("test_id");
+            let executable_hash: Option<String> = get_executable_hash(&mut client, system_config_id, commit_id)?;
+
+            println!("Benchmark Name: {}", benchmark_name);
+            println!("Benchmark ID: {}", benchmark_id);
+            println!("Commit Hash: {}", commit_hash);
+            println!("Commit ID: {}", commit_id);
+            println!("Test ID: {}", test_id);
+            println!("Executable Hash: {:?}", executable_hash);
+
+            let configure_path = format!("{}/{}", TEMP_DIR, commit_hash);
+            let executable_path = Path::new(&configure_path).join("bin/postgres");
+
+            let mut should_compile = true;
+            println!("Checking if we need to compile or if we can reuse existing...");
+            if let Some(stored_hash) = executable_hash {
+                if Path::new(&configure_path).exists() {
+                    if executable_path.exists() {
+                        let computed_hash = compute_sha512_hex(&executable_path)?;
+                        if computed_hash == stored_hash {
+                            should_compile = false;
+                            println!("Executable hash matches. Proceeding...");
+                            stop_if_started(&commit_hash)?;
+                            start_postgres(&commit_hash)?;
+                        } else {
+                            println!("Executable hash mismatch! Expected {}, found {}", stored_hash, computed_hash);
+                        }
+                    } else {
+                        println!("Executable not found at {}", executable_path.display());
+                    }
+                }
+            }
+            if should_compile {
+                compile_postgres(&commit_hash)?;
+                if executable_path.exists() {
+                    let computed_hash = compute_sha512_hex(&executable_path)?;
+                    client.execute(
+                        "
+                        SELECT catbench.set_executable_hash(
+                            system_config_id := $1,
+                            commit_id := $2,
+                            executable_hash := $3
+                        )",
+                        &[&system_config_id, &commit_id, &computed_hash],
+                    )?;
+                } else {
+                    panic!("Compiled but executable not found at {}", executable_path.display());
+                }
+            }
+
+            let mut benchmark_client = Client::connect(
+                &format!("host=localhost port={} dbname=catbench", TEMP_PORT),
+                NoTls,
+            )?;
+
+            println!("Starting benchmark...");
+
+            let test_rows =
                 client.query("SELECT * FROM catbench.generate_test($1)", &[&test_id])?;
 
-            if rows.is_empty() {
+            if test_rows.is_empty() {
                 panic!("catbench.generate_test() didn't return any row");
             }
 
-            let row = &rows[0];
-            let function_name: String = row.get("function_name");
-            let input_values: Vec<String> = row.get("input_values");
+            let test_row = &test_rows[0];
+            let function_name: String = test_row.get("function_name");
+            let input_values: Vec<String> = test_row.get("input_values");
 
             let execution_time: f64 = benchmark_client
                 .query_one(
@@ -485,24 +488,25 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
             client.execute(
                 "
                 SELECT catbench.insert_result(
-                    test_id := $1,
-                    run_id := $2,
-                    execution_time := $3
+                    execution_time := $1,
+                    benchmark_id := $2,
+                    system_config_id := $3,
+                    commit_id := $4,
+                    test_id := $5
                 )",
-                &[&test_id, &run_id, &execution_time],
+                &[&execution_time, &benchmark_id, &system_config_id, &commit_id, &test_id],
             )?;
             pb.inc(1);
+
+            let data_dir = format!("{}/{}-data", TEMP_DIR, commit_hash);
+            run_command(
+                Command::new(format!("{}/bin/pg_ctl", configure_path))
+                    .args(&["-D", &data_dir, "-m", "i", "stop"]),
+            )?;
+
         }
 
         pb.finish_with_message("Benchmark completed");
-
-        client.execute("SELECT catbench.mark_run_as_finished($1)", &[&run_id])?;
-
-        let data_dir = format!("{}/{}-data", TEMP_DIR, commit_hash);
-        run_command(
-            Command::new(format!("{}/bin/pg_ctl", configure_path))
-                .args(&["-D", &data_dir, "-m", "i", "stop"]),
-        )?;
 
     }
 

@@ -39,6 +39,7 @@ insert_binary AS
     FROM unnest(ARRAY['numeric_add', 'numeric_mul', 'numeric_div']) AS function_name
     CROSS JOIN series AS var1
     CROSS JOIN series AS var2
+    CROSS JOIN generate_series(1,3)
     WHERE var1.ndigits <= var2.ndigits
 )
 INSERT INTO catbench.tests
@@ -46,4 +47,5 @@ INSERT INTO catbench.tests
 SELECT
     catbench.get_function_id('numeric', 'numeric_sqrt'),
     series.ndigits
-FROM series;
+FROM series
+CROSS JOIN generate_series(1,3);
