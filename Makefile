@@ -46,6 +46,8 @@ SQL_SRC = \
 	functions/set_executable_hash.sql \
 	procedures/merge_new_commits.sql \
 	views/vresults.sql \
+	views/vreport.sql \
+	views/vcommits.sql \
 	benchmarks/numeric.sql
 
 catbench--0.1.sql: $(SQL_SRC)
