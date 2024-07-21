@@ -226,6 +226,12 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                 .current_dir(POSTGRESQL_REPO_PATH),
         )?;
 
+        run_command(
+            Command::new("git")
+                .args(&["clean", "-fdx", "-e", "config.cache", "-e", "config.status", "-e", "config.log"])
+                .current_dir(POSTGRESQL_REPO_PATH),
+        )?;
+
         let mut configure_args = vec![
             format!("--prefix={}", configure_path),
             format!("--with-pgport={}", TEMP_PORT),
