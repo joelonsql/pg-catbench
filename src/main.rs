@@ -498,7 +498,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                     system_config_id := $3,
                     commit_id := $4,
                     test_id := $5,
-                    benchmark_duration := ($7 - $6)
+                    benchmark_duration := ($7::timestamptz - $6::timestamptz)
                 )",
                 &[&execution_time, &benchmark_id, &system_config_id, &commit_id, &test_id, &start_time, &end_time],
             )?;
