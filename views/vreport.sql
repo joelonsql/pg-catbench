@@ -73,8 +73,8 @@ SELECT
     timeit.pretty_time(b_avg::numeric,2) AS b_avg,
     timeit.pretty_time(pooled_stddev::numeric,2) AS pooled_stddev,
     timeit.pretty_time((b_avg - a_avg)::numeric,2) AS abs_diff,
-    ROUND((b_avg / a_avg - 1.0)::numeric * 100) AS rel_diff,
-    ROUND(ABS(b_avg - a_avg) / pooled_stddev) AS sigmas
+    ROUND((b_avg / NULLIF(a_avg,0) - 1.0)::numeric * 100) AS rel_diff,
+    ROUND(ABS(b_avg - a_avg) / NULLIF(pooled_stddev,0)) AS sigmas
 FROM q2
 ORDER BY
     commit_id,

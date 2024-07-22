@@ -58,9 +58,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
 
     // Function to run a command and print it out
     fn run_command(command: &mut Command) -> Result<(), Box<dyn std::error::Error>> {
-        if cfg!(debug_assertions) {
-            println!("Running command: {:?}", command);
-        }
+        println!("Running command: {:?}", command);
         let output = command.stderr(Stdio::piped()).output()?;
         if !output.status.success() {
             eprintln!(
@@ -186,6 +184,8 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     fn start_postgres(commit_hash: &str) -> Result<(), Box<dyn std::error::Error>> {
+        stop_previous_runs()?;
+
         let configure_path = format!("{}/{}", TEMP_DIR, commit_hash);
         let data_dir = format!("{}/{}-data", TEMP_DIR, commit_hash);
     
