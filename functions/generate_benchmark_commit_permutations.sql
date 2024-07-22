@@ -1,10 +1,10 @@
 CREATE OR REPLACE FUNCTION catbench.generate_benchmark_commit_permutations()
 RETURNS TABLE
 (
-    benchmark_id bigint,
-    benchmark_name text,
     commit_id bigint,
     commit_hash text,
+    benchmark_id bigint,
+    benchmark_name text,
     test_id bigint
 )
 LANGUAGE SQL
@@ -44,31 +44,31 @@ BEGIN ATOMIC
     with_parents AS
     (
         SELECT
-            change_commits.benchmark_id,
-            change_commits.benchmark_name,
             change_commits.commit_id,
-            change_commits.commit_hash
+            change_commits.commit_hash,
+            change_commits.benchmark_id,
+            change_commits.benchmark_name
         FROM change_commits
         UNION
         SELECT
-            change_commits.benchmark_id,
-            change_commits.benchmark_name,
             parent_commit.id,
-            parent_commit.commit_hash
+            parent_commit.commit_hash,
+            change_commits.benchmark_id,
+            change_commits.benchmark_name
         FROM change_commits
         JOIN catbench.commits AS parent_commit
           ON parent_commit.commit_hash = change_commits.parent_hash
     )
     SELECT
-        with_parents.benchmark_id,
-        with_parents.benchmark_name,
         with_parents.commit_id,
         with_parents.commit_hash,
+        with_parents.benchmark_id,
+        with_parents.benchmark_name,
         catbench.tests.id AS test_id
     FROM with_parents
     JOIN catbench.functions
       ON catbench.functions.benchmark_id = with_parents.benchmark_id
     JOIN catbench.tests
       ON catbench.tests.function_id = catbench.functions.id
-    ORDER BY random();
+    ORDER BY with_parents.commit_id, random();
 END;

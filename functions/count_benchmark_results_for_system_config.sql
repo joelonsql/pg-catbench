@@ -4,20 +4,20 @@ CREATE OR REPLACE FUNCTION catbench.count_benchmark_results_for_system_config
 )
 RETURNS TABLE
 (
-    benchmark_id bigint,
-    benchmark_name text,
     commit_id bigint,
     commit_hash text,
+    benchmark_id bigint,
+    benchmark_name text,
     test_id bigint,
     count_results bigint
 )
 LANGUAGE SQL
 BEGIN ATOMIC
     SELECT
-        g.benchmark_id,
-        g.benchmark_name,
         g.commit_id,
         g.commit_hash,
+        g.benchmark_id,
+        g.benchmark_name,
         g.test_id,
         (
             SELECT COUNT(*) FROM catbench.results

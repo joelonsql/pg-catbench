@@ -22,7 +22,7 @@ const TEMP_PORT: u16 = 54321;
 const TIMEIT_REPO_URL: &str = "https://github.com/joelonsql/pg-timeit.git";
 const TIMEIT_REPO_PATH: &str = "pg-timeit";
 const POSTGRESQL_REPO_PATH: &str = "./postgresql_repo";
-const MAX_TARGET_RESULT_COUNT: i64 = 3;
+const MAX_TARGET_RESULT_COUNT: i64 = 10;
 
 /// Compute the SHA-512 hash of a file and return it as a hexadecimal encoded text string.
 fn compute_sha512_hex(file_path: &Path) -> Result<String, Box<dyn std::error::Error>> {
@@ -204,6 +204,30 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         Ok(())
+    }
+
+    fn start_if_not_started(
+        commit_hash: &str
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let data_dir = format!("{}/{}-data", TEMP_DIR, commit_hash);
+        let pid_file_path = Path::new(&data_dir).join("postmaster.pid");
+
+        if pid_file_path.exists() {
+            if let Ok(pid_string) = fs::read_to_string(&pid_file_path) {
+                if let Some(pid) = pid_string.lines().next() {
+                    if let Ok(pid) = pid.parse::<i32>() {
+                        let system = System::new_all();
+                        if system.process(sysinfo::Pid::from(pid as usize)).is_some() {
+                            // The process is running, no need to start it again
+                            return Ok(());
+                        }
+                    }
+                }
+            }
+        }
+
+        // If the PID file does not exist or the process is not running, start the server
+        start_postgres(commit_hash)
     }
 
     fn compile_postgres(
@@ -424,8 +448,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                         if computed_hash == stored_hash {
                             should_compile = false;
                             println!("Executable hash matches. Proceeding...");
-                            stop_if_started(&commit_hash)?;
-                            start_postgres(&commit_hash)?;
+                            start_if_not_started(&commit_hash)?;
                         } else {
                             println!("Executable hash mismatch! Expected {}, found {}", stored_hash, computed_hash);
                         }
@@ -479,7 +502,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                     function_name := $1,
                     input_values := $2,
                     significant_figures := 1,
-                    timeout := '10 seconds'::interval,
+                    timeout := '1 seconds'::interval,
                     min_time := NULL,
                     core_id := $3,
                     r2_threshold := 0.999
@@ -503,12 +526,6 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                 &[&execution_time, &benchmark_id, &system_config_id, &commit_id, &test_id, &start_time, &end_time],
             )?;
             pb.inc(1);
-
-            let data_dir = format!("{}/{}-data", TEMP_DIR, commit_hash);
-            run_command(
-                Command::new(format!("{}/bin/pg_ctl", configure_path))
-                    .args(&["-D", &data_dir, "-m", "i", "stop"]),
-            )?;
 
         }
 
