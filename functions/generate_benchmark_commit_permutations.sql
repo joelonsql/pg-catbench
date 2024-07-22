@@ -30,15 +30,12 @@ BEGIN ATOMIC
         )
         --
         -- Benchmark all commits since REL_12_BETA1
-        -- a240570b1e3802d1e82da08a9d72abeade370249
         --
         AND catbench.commits.id >
         (
             SELECT REL_12_BETA1.id
             FROM catbench.commits AS REL_12_BETA1
-            -- Temp set it to 571f7f70865cdaf1a49e7934208ad139575e3f03
-            -- which is since Jul 9 2024. Change back when we have evaluated.
-            WHERE REL_12_BETA1.commit_hash = '571f7f70865cdaf1a49e7934208ad139575e3f03'
+            WHERE REL_12_BETA1.commit_hash = 'a240570b1e3802d1e82da08a9d72abeade370249'
         )
     ),
     with_parents AS
