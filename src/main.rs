@@ -478,8 +478,9 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                     input_values := $2,
                     significant_figures := 1,
                     timeout := '10 seconds'::interval,
-                    min_time := '50 ms'::interval,
-                    core_id := $3
+                    min_time := NULL,
+                    core_id := $3,
+                    r2_threshold := 0.999
                 )
                 ",
                     &[&function_name, &input_values, &core_id],
