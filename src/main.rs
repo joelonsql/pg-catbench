@@ -15,6 +15,7 @@ use sha2::{Sha512, Digest};
 use std::fs::File;
 use std::io::Read;
 use hex;
+use chrono::Utc;
 
 const TEMP_DIR: &str = "./compiled_postgresql_commits";
 const TEMP_PORT: u16 = 54321;
@@ -469,6 +470,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
             let function_name: String = test_row.get("function_name");
             let input_values: Vec<String> = test_row.get("input_values");
 
+            let start_time = Utc::now();
             let execution_time: f64 = benchmark_client
                 .query_one(
                     "
@@ -486,6 +488,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                     &[&function_name, &input_values, &core_id],
                 )?
                 .get(0);
+            let end_time = Utc::now();
 
             client.execute(
                 "
@@ -494,9 +497,10 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                     benchmark_id := $2,
                     system_config_id := $3,
                     commit_id := $4,
-                    test_id := $5
+                    test_id := $5,
+                    benchmark_duration := ($7 - $6)
                 )",
-                &[&execution_time, &benchmark_id, &system_config_id, &commit_id, &test_id],
+                &[&execution_time, &benchmark_id, &system_config_id, &commit_id, &test_id, &start_time, &end_time],
             )?;
             pb.inc(1);
 

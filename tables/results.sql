@@ -6,6 +6,7 @@ CREATE TABLE catbench.results
     system_config_id uuid NOT NULL,
     commit_id bigint NOT NULL,
     test_id bigint NOT NULL,
+    benchmark_duration interval NOT NULL,
     result_at timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (id),
     FOREIGN KEY (test_id) REFERENCES catbench.tests (id),
