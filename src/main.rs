@@ -58,7 +58,9 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
 
     // Function to run a command and print it out
     fn run_command(command: &mut Command) -> Result<(), Box<dyn std::error::Error>> {
-        println!("Running command: {:?}", command);
+        if cfg!(debug_assertions) {
+            println!("Running command: {:?}", command);
+        }
         let output = command.stderr(Stdio::piped()).output()?;
         if !output.status.success() {
             eprintln!(
@@ -96,10 +98,12 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                                 ]),
                         );
                         if pg_ctl_result.is_err() {
-                            println!(
-                                "pg_ctl stop failed for {}. It might already be stopped.",
-                                commit_hash
-                            );
+                            if cfg!(debug_assertions) {
+                                println!(
+                                    "pg_ctl stop failed for {}. It might already be stopped.",
+                                    commit_hash
+                                );
+                            }
                         }
                     }
                 }
@@ -135,10 +139,12 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                                         ]),
                                 );
                                 if pg_ctl_result.is_err() {
-                                    println!(
-                                        "pg_ctl stop failed for {}. It might already be stopped.",
-                                        dir_name
-                                    );
+                                    if cfg!(debug_assertions) {
+                                        println!(
+                                            "pg_ctl stop failed for {}. It might already be stopped.",
+                                            dir_name
+                                        );
+                                    }
                                 }
                             }
                             let log_file = format!("{}.log", dir_name);
@@ -179,15 +185,11 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
         Ok(())
     }
 
-    fn start_postgres(
-        commit_hash: &str
-    ) -> Result<(), Box<dyn std::error::Error>> {
-
+    fn start_postgres(commit_hash: &str) -> Result<(), Box<dyn std::error::Error>> {
         let configure_path = format!("{}/{}", TEMP_DIR, commit_hash);
-
         let data_dir = format!("{}/{}-data", TEMP_DIR, commit_hash);
-
-        let pg_ctl_result = run_command(
+    
+        run_command(
             Command::new(format!("{}/bin/pg_ctl", configure_path)).args(&[
                 "-D",
                 &data_dir,
@@ -195,17 +197,11 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                 &format!("{}/{}.log", TEMP_DIR, commit_hash),
                 "start",
             ]),
-        );
-        if pg_ctl_result.is_err() {
-            println!(
-                "pg_ctl start failed for {}",
-                commit_hash
-            );
-        }
-
+        )?;
+    
         Ok(())
     }
-
+    
     fn start_if_not_started(
         commit_hash: &str
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -359,7 +355,9 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let core_id = get_first_isolated_cpu().unwrap_or(-1);
-    println!("Using core_id: {}", core_id);
+    if core_id != 1 {
+        println!("Using CPU core_id: {}", core_id);
+    }
 
     // Create temporary directory if it does not exist
     std::fs::create_dir_all(TEMP_DIR)?;
@@ -429,31 +427,41 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
             let test_id: i64 = row.get("test_id");
             let executable_hash: Option<String> = get_executable_hash(&mut client, system_config_id, commit_id)?;
 
-            println!("Benchmark Name: {}", benchmark_name);
-            println!("Benchmark ID: {}", benchmark_id);
-            println!("Commit Hash: {}", commit_hash);
-            println!("Commit ID: {}", commit_id);
-            println!("Test ID: {}", test_id);
-            println!("Executable Hash: {:?}", executable_hash);
+            if cfg!(debug_assertions) {
+                println!("Benchmark Name: {}", benchmark_name);
+                println!("Benchmark ID: {}", benchmark_id);
+                println!("Commit Hash: {}", commit_hash);
+                println!("Commit ID: {}", commit_id);
+                println!("Test ID: {}", test_id);
+                println!("Executable Hash: {:?}", executable_hash);
+            }
 
             let configure_path = format!("{}/{}", TEMP_DIR, commit_hash);
             let executable_path = Path::new(&configure_path).join("bin/postgres");
 
             let mut should_compile = true;
-            println!("Checking if we need to compile or if we can reuse existing...");
+            if cfg!(debug_assertions) {
+                println!("Checking if we need to compile or if we can reuse existing...");
+            }
             if let Some(stored_hash) = executable_hash {
                 if Path::new(&configure_path).exists() {
                     if executable_path.exists() {
                         let computed_hash = compute_sha512_hex(&executable_path)?;
                         if computed_hash == stored_hash {
                             should_compile = false;
-                            println!("Executable hash matches. Proceeding...");
+                            if cfg!(debug_assertions) {
+                                println!("Executable hash matches. Proceeding...");
+                            }
                             start_if_not_started(&commit_hash)?;
                         } else {
-                            println!("Executable hash mismatch! Expected {}, found {}", stored_hash, computed_hash);
+                            if cfg!(debug_assertions) {
+                                println!("Executable hash mismatch! Expected {}, found {}", stored_hash, computed_hash);
+                            }
                         }
                     } else {
-                        println!("Executable not found at {}", executable_path.display());
+                        if cfg!(debug_assertions) {
+                            println!("Executable not found at {}", executable_path.display());
+                        }
                     }
                 }
             }
@@ -480,7 +488,9 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                 NoTls,
             )?;
 
-            println!("Starting benchmark...");
+            if cfg!(debug_assertions) {
+                println!("Starting benchmark...");
+            }
 
             let test_rows =
                 client.query("SELECT * FROM catbench.generate_test($1)", &[&test_id])?;
