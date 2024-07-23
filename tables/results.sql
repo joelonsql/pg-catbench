@@ -1,7 +1,13 @@
 CREATE TABLE catbench.results
 (
     id uuid NOT NULL DEFAULT pg_catalog.gen_random_uuid(),
-    execution_time float8 NOT NULL,
+    measure_type timeit.measure_type NOT NULL,
+    x float8[] NOT NULL,
+    y float8[] NOT NULL,
+    r_squared float8 NOT NULL,
+    slope float8 NOT NULL,
+    intercept float8 NOT NULL,
+    iterations bigint NOT NULL,
     benchmark_id bigint NOT NULL,
     system_config_id uuid NOT NULL,
     commit_id bigint NOT NULL,

@@ -1,6 +1,7 @@
 CREATE OR REPLACE VIEW catbench.vresults AS
 SELECT
-    catbench.results.execution_time,
+    catbench.results.measure_type,
+    catbench.results.slope,
     catbench.results.result_at,
     catbench.benchmarks.name AS benchmark_name,
     catbench.results.system_config_id,

@@ -16,6 +16,7 @@ use std::fs::File;
 use std::io::Read;
 use hex;
 use chrono::Utc;
+use postgres_types::{ToSql, FromSql};
 
 const TEMP_DIR: &str = "./compiled_postgresql_commits";
 const TEMP_PORT: u16 = 54321;
@@ -23,6 +24,15 @@ const TIMEIT_REPO_URL: &str = "https://github.com/joelonsql/pg-timeit.git";
 const TIMEIT_REPO_PATH: &str = "pg-timeit";
 const POSTGRESQL_REPO_PATH: &str = "./postgresql_repo";
 const MAX_TARGET_RESULT_COUNT: i64 = 10;
+
+#[derive(ToSql, FromSql, Debug)]
+#[postgres(name = "measure_type")]
+enum MeasureType {
+    #[postgres(name = "cycles")]
+    Cycles,
+    #[postgres(name = "time")]
+    Time,
+}
 
 /// Compute the SHA-512 hash of a file and return it as a hexadecimal encoded text string.
 fn compute_sha512_hex(file_path: &Path) -> Result<String, Box<dyn std::error::Error>> {
@@ -503,37 +513,66 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
             let function_name: String = test_row.get("function_name");
             let input_values: Vec<String> = test_row.get("input_values");
 
+            let measure_type: MeasureType = MeasureType::Time;
+
             let start_time = Utc::now();
-            let execution_time: f64 = benchmark_client
-                .query_one(
-                    "
-                SELECT timeit.f
-                (
-                    function_name := $1,
-                    input_values := $2,
-                    significant_figures := 1,
-                    timeout := '1 seconds'::interval,
-                    min_time := NULL,
-                    core_id := $3,
-                    r2_threshold := 0.999
-                )
-                ",
-                    &[&function_name, &input_values, &core_id],
-                )?
-                .get(0);
+
+            let measure_result = benchmark_client.query_one(
+                "
+                    SELECT * FROM timeit.measure
+                    (
+                        function_name := $1,
+                        input_values := $2,
+                        r_squared_threshold := 0.99,
+                        sample_size := 10,
+                        timeout := '1 second'::interval,
+                        measure_type := $3,
+                        core_id := $4
+                    )
+                    ",
+                &[&function_name, &input_values, &measure_type, &core_id],
+            )?;
+
             let end_time = Utc::now();
+
+            let x: Vec<f64> = measure_result.get("x");
+            let y: Vec<f64> = measure_result.get("y");
+            let r_squared: f64 = measure_result.get("r_squared");
+            let slope: f64 = measure_result.get("slope");
+            let intercept: f64 = measure_result.get("intercept");
+            let iterations: i64 = measure_result.get("iterations");
 
             client.execute(
                 "
                 SELECT catbench.insert_result(
-                    execution_time := $1,
-                    benchmark_id := $2,
-                    system_config_id := $3,
-                    commit_id := $4,
-                    test_id := $5,
-                    benchmark_duration := ($7::timestamptz - $6::timestamptz)
+                    measure_type := $1,
+                    x := $2,
+                    y := $3,
+                    r_squared := $4,
+                    slope := $5,
+                    intercept := $6,
+                    iterations := $7,
+                    benchmark_id := $8,
+                    system_config_id := $9,
+                    commit_id := $10,
+                    test_id := $11,
+                    benchmark_duration := ($13::timestamptz - $12::timestamptz)
                 )",
-                &[&execution_time, &benchmark_id, &system_config_id, &commit_id, &test_id, &start_time, &end_time],
+                &[
+                    &measure_type,
+                    &x,
+                    &y,
+                    &r_squared,
+                    &slope,
+                    &intercept,
+                    &iterations,
+                    &benchmark_id,
+                    &system_config_id,
+                    &commit_id,
+                    &test_id,
+                    &start_time,
+                    &end_time,
+                ],
             )?;
             pb.inc(1);
 

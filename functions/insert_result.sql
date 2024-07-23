@@ -1,6 +1,12 @@
 CREATE OR REPLACE FUNCTION catbench.insert_result
 (
-    execution_time float8,
+    measure_type timeit.measure_type,
+    x float8[],
+    y float8[],
+    r_squared float8,
+    slope float8,
+    intercept float8,
+    iterations bigint,
     benchmark_id bigint,
     system_config_id uuid,
     commit_id bigint,
@@ -11,8 +17,8 @@ RETURNS uuid
 LANGUAGE SQL
 BEGIN ATOMIC
     INSERT INTO catbench.results
-        (execution_time, benchmark_id, system_config_id, commit_id, test_id, benchmark_duration)
+        (measure_type, x, y, r_squared, slope, intercept, iterations, benchmark_id, system_config_id, commit_id, test_id, benchmark_duration)
     VALUES
-        (execution_time, benchmark_id, system_config_id, commit_id, test_id, benchmark_duration)
+        (measure_type, x, y, r_squared, slope, intercept, iterations, benchmark_id, system_config_id, commit_id, test_id, benchmark_duration)
     RETURNING id;
 END;

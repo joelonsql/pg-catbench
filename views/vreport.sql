@@ -12,8 +12,9 @@ q AS
         catbench.commits.commit_hash,
         catbench.commits.parent_hash,
         catbench.commits.summary,
-        AVG(catbench.results.execution_time) AS avg,
-        STDDEV(catbench.results.execution_time) AS stddev,
+        catbench.results.measure_type,
+        AVG(catbench.results.slope) AS avg,
+        STDDEV(catbench.results.slope) AS stddev,
         COUNT(*) AS n
     FROM catbench.results
     JOIN catbench.benchmarks
@@ -31,7 +32,8 @@ q AS
         catbench.tests.x,
         catbench.tests.y,
         catbench.commits.id,
-        catbench.commits.commit_hash
+        catbench.commits.commit_hash,
+        catbench.results.measure_type
 ),
 q2 AS
 (
