@@ -525,7 +525,7 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
                         input_values := $2,
                         r_squared_threshold := 0.99,
                         sample_size := 10,
-                        timeout := '1 second'::interval,
+                        timeout := '100 ms'::interval,
                         measure_type := $3,
                         core_id := $4
                     )
