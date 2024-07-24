@@ -29,10 +29,6 @@ BEGIN ATOMIC
             catbench.results.commit_id,
             catbench.results.test_id
     ),
-    min_count AS
-    (
-        SELECT COALESCE(MIN(count),0) AS count FROM count_results
-    ),
     change_commits AS
     (
         SELECT
@@ -107,6 +103,10 @@ BEGIN ATOMIC
                ON count_results.benchmark_id = g.benchmark_id
               AND count_results.commit_id = g.commit_id
               AND count_results.test_id = g.test_id
+    ),
+    min_count AS
+    (
+        SELECT COALESCE(MIN(count),0) AS count FROM count_benchmark_results_for_system_config
     )
     SELECT
         c.commit_id,
