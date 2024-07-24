@@ -14,13 +14,26 @@ RETURNS TABLE
 )
 LANGUAGE SQL
 BEGIN ATOMIC
+    WITH
+    q AS
+    (
+        SELECT
+            c.commit_id,
+            c.commit_hash,
+            c.benchmark_id,
+            c.benchmark_name,
+            c.test_id,
+            c.count_results,
+            MIN(c.count_results) OVER ()
+        FROM catbench.count_benchmark_results_for_system_config(system_config_id) AS c
+    )
     SELECT
-        c.commit_id,
-        c.commit_hash,
-        c.benchmark_id,
-        c.benchmark_name,
-        c.test_id,
-        c.count_results
-    FROM catbench.count_benchmark_results_for_system_config(system_config_id) AS c
-    WHERE c.count_results < get_tests_for_next_cycle.max_target_result_count;
+        q.commit_id,
+        q.commit_hash,
+        q.benchmark_id,
+        q.benchmark_name,
+        q.test_id,
+        q.count_results
+    FROM q
+    WHERE q.count_results = q.MIN;
 END;
