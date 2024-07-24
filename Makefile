@@ -29,8 +29,6 @@ SQL_SRC = \
 	tables/results.sql \
 	functions/register_system_config.sql \
 	functions/new_benchmark.sql \
-	functions/generate_benchmark_commit_permutations.sql \
-	functions/count_benchmark_results_for_system_config.sql \
 	functions/get_tests_for_next_cycle.sql \
 	functions/get_benchmark_id.sql \
 	functions/get_benchmark_test_ids.sql \
