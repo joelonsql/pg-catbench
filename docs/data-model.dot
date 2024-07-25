@@ -1,34 +1,29 @@
 digraph pg_catbench {
     node [shape=record];
 
-    benchmarks [label="{benchmarks|id : bigint (PK)\lname : text (U)\lgenerate_function : text\lhash_function : text\l}"];
     benchmark_files [label="{benchmark_files|id : bigint (PK)\lbenchmark_id : bigint (FK)\lfile_id : bigint (FK)\l}"];
-    functions [label="{functions|id : bigint (PK)\lname : text (U)\lbenchmark_id : bigint (FK)\lx_label : text\ly_label : text\l}"];
-    system_configs [label="{system_configs|id : uuid (PK)\lcpu_info : jsonb\los_info : jsonb\lcreated_at : timestamptz\l}"];
-    results [label="{results|id : uuid (PK)\lmeasure_type : text\lx : float8[]\ly : float8[]\lr_squared : float8\slope : float8\lintercept : float8\literations : bigint\lbenchmark_id : bigint (FK)\lsystem_config_id : uuid (FK)\lcommit_id : bigint (FK)\ltest_id : bigint (FK)\lbenchmark_duration : interval\lresult_at : timestamptz\l}"];
-    runs [label="{runs|id : uuid (PK)\lbenchmark_id : bigint (FK)\lsystem_config_id : uuid (FK)\lcommit_id : bigint (FK)\lcreated_at : timestamptz\lstarted_at : timestamptz\lfinished_at : timestamptz\l}"];
-    tests [label="{tests|id : bigint (PK)\lfunction_id : bigint (FK)\lx : numeric\ly : numeric\lhash_value : integer\lseed_value : float8\l}"];
-    commits [label="{commits|id : bigint (PK)\lcommit_hash : text (U)\lparent_hash : text (FK)\lsummary : text\lcommit_time : timestamptz\l}"];
-    files [label="{files|id : bigint (PK)\lfile_path : text (U)\l}"];
+    benchmarks [label="{benchmarks|id : bigint (PK)\lname : text (U)\lgenerate_function : text\lhash_function : text\l}"];
     commit_files [label="{commit_files|commit_id : bigint (FK)\lfile_id : bigint (FK)\l}"];
+    commits [label="{commits|id : bigint (PK)\lcommit_hash : text (U)\lparent_hash : text (FK)\lsummary : text\lcommit_time : timestamptz\l}"];
     compilations [label="{compilations|system_config_id : uuid (FK)\lcommit_id : bigint (FK)\lexecutable_hash : text\l}"];
+    files [label="{files|id : bigint (PK)\lfile_path : text (U)\l}"];
+    functions [label="{functions|id : bigint (PK)\lname : text (U)\lbenchmark_id : bigint (FK)\lx_label : text\ly_label : text\l}"];
+    results [label="{results|id : uuid (PK)\lmeasure_type : text\lx : float8[]\ly : float8[]\lr_squared : float8\slope : float8\lintercept : float8\literations : bigint\lbenchmark_id : bigint (FK)\lsystem_config_id : uuid (FK)\lcommit_id : bigint (FK)\ltest_id : bigint (FK)\lbenchmark_duration : interval\lresult_at : timestamptz\l}"];
+    system_configs [label="{system_configs|id : uuid (PK)\lcpu_info : jsonb\los_info : jsonb\lcreated_at : timestamptz\l}"];
+    tests [label="{tests|id : bigint (PK)\lfunction_id : bigint (FK)\lx : numeric\ly : numeric\lhash_value : integer\lseed_value : float8\l}"];
 
     // Relationships
     benchmark_files -> benchmarks [label="benchmark_id"];
     benchmark_files -> files [label="file_id"];
-    functions -> benchmarks [label="benchmark_id"];
-    results -> runs [label="run_id"];
-    results -> tests [label="test_id"];
-    results -> benchmarks [label="benchmark_id"];
-    results -> system_configs [label="system_config_id"];
-    results -> commits [label="commit_id"];
-    runs -> benchmarks [label="benchmark_id"];
-    runs -> system_configs [label="system_config_id"];
-    runs -> commits [label="commit_id"];
-    tests -> functions [label="function_id"];
     commit_files -> commits [label="commit_id"];
     commit_files -> files [label="file_id"];
     commits -> commits [label="parent_hash"];
     compilations -> system_configs [label="system_config_id"];
     compilations -> commits [label="commit_id"];
+    functions -> benchmarks [label="benchmark_id"];
+    results -> tests [label="test_id"];
+    results -> benchmarks [label="benchmark_id"];
+    results -> system_configs [label="system_config_id"];
+    results -> commits [label="commit_id"];
+    tests -> functions [label="function_id"];
 }
