@@ -377,11 +377,17 @@ fn run_benchmarks() -> Result<(), Box<dyn std::error::Error>> {
     if !Path::new(TIMEIT_REPO_PATH).exists() {
         run_command(Command::new("git").args(&["clone", TIMEIT_REPO_URL, TIMEIT_REPO_PATH]))?;
     } else {
-        run_command(
+        let git_pull_result = run_command(
             Command::new("git")
                 .args(&["pull"])
                 .current_dir(TIMEIT_REPO_PATH),
-        )?;
+        );
+        if git_pull_result.is_err() {
+            println!(
+                "git pull {} failed, skipping",
+                TIMEIT_REPO_PATH
+            );
+        }
     }
 
     let mut client = Client::connect("host=localhost", NoTls)?;
