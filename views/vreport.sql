@@ -13,8 +13,8 @@ q AS
         catbench.commits.parent_hash,
         catbench.commits.summary,
         catbench.results.measure_type,
-        AVG(catbench.results.slope) AS avg,
-        STDDEV(catbench.results.slope) AS stddev,
+        AVG(catbench.results.slope/1e6) AS avg,
+        STDDEV(catbench.results.slope/1e6) AS stddev,
         COUNT(*) AS n
     FROM catbench.results
     JOIN catbench.benchmarks
