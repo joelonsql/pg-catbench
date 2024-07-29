@@ -48,13 +48,13 @@ BEGIN ATOMIC
               AND catbench.commit_files.commit_id = catbench.commits.id
         )
         --
-        -- Benchmark all commits since REL_12_BETA1
+        -- Benchmark all commits since REL_17_BETA1
         --
         AND catbench.commits.id >
         (
-            SELECT REL_12_BETA1.id
-            FROM catbench.commits AS REL_12_BETA1
-            WHERE REL_12_BETA1.commit_hash = 'a240570b1e3802d1e82da08a9d72abeade370249'
+            SELECT REL_17_BETA1.id
+            FROM catbench.commits AS REL_17_BETA1
+            WHERE REL_17_BETA1.commit_hash = 'c37267162e889fe783786b9e28d1b65b82365a00'
         )
     ),
     with_parents AS
