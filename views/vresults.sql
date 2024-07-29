@@ -10,7 +10,11 @@ SELECT
     catbench.tests.y,
     catbench.commits.id AS commit_id,
     catbench.commits.commit_hash,
-    catbench.commits.parent_hash
+    catbench.commits.parent_hash,
+    catbench.results.x AS result_x,
+    catbench.results.y AS result_y,
+    catbench.results.r_squared,
+    catbench.results.intercept
 FROM catbench.results
 JOIN catbench.tests
   ON catbench.tests.id = catbench.results.test_id
