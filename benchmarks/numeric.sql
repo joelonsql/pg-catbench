@@ -41,6 +41,15 @@ insert_binary AS
     CROSS JOIN series AS var2
     CROSS JOIN generate_series(1,3)
     WHERE var1.ndigits <= var2.ndigits
+),
+insert_balanced_tests AS
+(
+    INSERT INTO catbench.tests
+        (function_id, x, y)
+    VALUES
+        (catbench.get_function_id('numeric', 'numeric_mul'), 5, 5),
+        (catbench.get_function_id('numeric', 'numeric_mul'), 6, 6),
+        (catbench.get_function_id('numeric', 'numeric_mul'), 7, 7)
 )
 INSERT INTO catbench.tests
     (function_id, x)
